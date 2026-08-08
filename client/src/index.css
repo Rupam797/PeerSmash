@@ -241,3 +241,51 @@ h1, h2, h3, h4, h5, h6, .heading-font {
   font-weight: 600;
   text-transform: uppercase;
 }
+
+/* Responsive Grid Utilities for Mobile */
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+/* Mobile Media Queries */
+@media (max-width: 640px) {
+  html {
+    font-size: 80%;
+  }
+
+  .responsive-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .header-nav {
+    display: none !important;
+  }
+
+  .mobile-hide-badge {
+    display: none !important;
+  }
+
+  .mobile-wrap {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .mobile-card-padding {
+    padding: 1.2rem 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 78%;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}

@@ -72,17 +72,13 @@ export function ActiveRoomView({
       gap: '1.2rem'
     }}>
       {/* Top Wide Card: Room ID & Security Check */}
-      <div style={{
+      <div className="mobile-card-padding" style={{
         backgroundColor: '#121419',
         border: '1px solid #22252E',
         borderRadius: '16px',
         padding: '1.8rem 2rem'
       }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '2rem'
-        }}>
+        <div className="responsive-grid-2">
           {/* Left Column: Room ID & Copy Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             <span style={{
@@ -236,11 +232,7 @@ export function ActiveRoomView({
       </div>
 
       {/* Middle Grid: 2 Equal Cards Side-by-Side */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '1.2rem'
-      }}>
+      <div className="responsive-grid-2">
         {/* Left Card: Connection Status / Peer Waiting */}
         <div style={{
           backgroundColor: '#121419',

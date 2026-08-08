@@ -60,7 +60,7 @@ export function Header({
         </div>
 
         {/* Center: Nav Links (Home, How it works, About) */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+        <nav className="header-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
           <button
             onClick={() => onNavigate('home')}
             className={`nav-link ${activeTab === 'home' ? 'active' : ''}`}
@@ -104,7 +104,7 @@ export function Header({
           </div>
 
           {/* Total Users Served Pill */}
-          <div style={{
+          <div className="mobile-hide-badge" style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.35rem',
