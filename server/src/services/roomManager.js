@@ -1,11 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const statsFilePath = path.resolve(__dirname, '../../stats.json');
-
 /**
  * Room Manager Service
  * Handles in-memory P2P signaling room state.
@@ -16,45 +8,13 @@ class RoomManager {
     this.rooms = new Map();
     this.socketToRoom = new Map();
     this.knownVisitors = new Set();
-    
-    const loaded = this.loadPersistedStats();
-    this.totalConnectionsCount = loaded.totalConnectionsCount;
-    if (Array.isArray(loaded.knownVisitors)) {
-      this.knownVisitors = new Set(loaded.knownVisitors);
-    }
-  }
-
-  loadPersistedStats() {
-    try {
-      if (fs.existsSync(statsFilePath)) {
-        const data = JSON.parse(fs.readFileSync(statsFilePath, 'utf8'));
-        return {
-          totalConnectionsCount: data.totalConnectionsCount || 0,
-          knownVisitors: data.knownVisitors || []
-        };
-      }
-    } catch (e) {
-      console.error('[RoomManager] Failed to load stats.json:', e.message);
-    }
-    return { totalConnectionsCount: 0, knownVisitors: [] };
-  }
-
-  savePersistedStats() {
-    try {
-      fs.writeFileSync(statsFilePath, JSON.stringify({
-        totalConnectionsCount: this.totalConnectionsCount,
-        knownVisitors: Array.from(this.knownVisitors),
-        updatedAt: new Date().toISOString()
-      }, null, 2));
-    } catch (e) {
-      console.error('[RoomManager] Failed to save stats.json:', e.message);
-    }
+    this.totalConnectionsCount = 0;
+    this.totalTransfersCompleted = 0;
   }
 
   resetStats() {
     this.totalConnectionsCount = 0;
     this.knownVisitors.clear();
-    this.savePersistedStats();
   }
 
   registerVisitor(visitorId) {
@@ -62,7 +22,6 @@ class RoomManager {
     if (!this.knownVisitors.has(visitorId)) {
       this.knownVisitors.add(visitorId);
       this.totalConnectionsCount++;
-      this.savePersistedStats();
       return true; // New unique visitor counted
     }
     return false; // Existing visitor reconnected

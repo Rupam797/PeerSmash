@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, Users, Radio, Globe } from 'lucide-react';
 import { PeerSmashAppIcon } from './PeerSmashIcon';
+import { AnimatedNumber } from './AnimatedNumber';
 
 export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
   const [inputCode, setInputCode] = useState('');
@@ -219,7 +220,7 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
           <li style={{ display: 'flex', alignItems: 'flex-start' }}>
             <span style={{ color: 'var(--brand-mint)', marginRight: '0.75rem', fontSize: '1.2rem', lineHeight: 1, marginTop: '-0.1rem' }}>•</span>
             <p style={{ margin: 0 }}>
-              <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>Room Limits:</strong> Up to 8 devices can join a single room at once. You can transfer files up to 100 MB in size.
+              <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>Room Limits:</strong> Up to 8 devices can join a single room at once. You can transfer files up to 1 GB in size.
             </p>
           </li>
         </ul>
@@ -247,7 +248,9 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
           borderRadius: '9999px'
         }}>
           <span className="pulse-dot green" style={{ width: '7px', height: '7px' }}></span>
-          <span style={{ color: 'var(--text-main)' }}><strong>{connectedPeers}</strong> {connectedPeers === 1 ? 'User' : 'Users'} Online</span>
+          <span style={{ color: 'var(--text-main)' }}>
+            <strong><AnimatedNumber value={connectedPeers} /></strong> {connectedPeers === 1 ? 'User' : 'Users'} Online
+          </span>
         </div>
 
         <div style={{
@@ -260,7 +263,9 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
           borderRadius: '9999px'
         }}>
           <Radio size={13} color="var(--brand-mint)" />
-          <span style={{ color: 'var(--text-main)' }}><strong>{activeRooms}</strong> Active Rooms</span>
+          <span style={{ color: 'var(--text-main)' }}>
+            <strong><AnimatedNumber value={activeRooms} /></strong> Active Rooms
+          </span>
         </div>
 
         <div style={{
@@ -273,7 +278,9 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
           borderRadius: '9999px'
         }}>
           <Globe size={13} color="var(--brand-mint)" />
-          <span style={{ color: 'var(--text-main)' }}><strong>{totalConnections}</strong> Total Sessions</span>
+          <span style={{ color: 'var(--text-main)' }}>
+            <strong><AnimatedNumber value={totalConnections} /></strong> Total Sessions
+          </span>
         </div>
       </footer>
     </div>

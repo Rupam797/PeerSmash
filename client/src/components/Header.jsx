@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sun, Moon, Github, Star, Users } from 'lucide-react';
 import { PeerSmashAppIcon } from './PeerSmashIcon';
+import { AnimatedNumber } from './AnimatedNumber';
 
 export function Header({
   activeTab = 'home',
@@ -100,7 +101,7 @@ export function Header({
             fontWeight: 600
           }} title={`${connectedPeers} user(s) currently online`}>
             <div className="pulse-dot green" style={{ width: '6px', height: '6px' }}></div>
-            <span>{connectedPeers} Online</span>
+            <span><AnimatedNumber value={connectedPeers} /> Online</span>
           </div>
 
           {/* Total Users Served Pill */}
@@ -117,7 +118,7 @@ export function Header({
             fontWeight: 600
           }} title={`${stats?.totalConnections ?? 0} total user sessions served`}>
             <Users size={12} color="var(--brand-mint)" />
-            <span>{stats?.totalConnections ?? 0} Total Users</span>
+            <span><AnimatedNumber value={stats?.totalConnections ?? 0} /> Total Users</span>
           </div>
 
           {/* GitHub Star Badge Link */}

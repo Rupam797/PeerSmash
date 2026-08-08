@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createSocketConnection } from '../services/signaling';
 
+const SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL || 
+  (typeof window !== 'undefined' && window.location.origin.includes('localhost') ? 'http://localhost:4000' : window.location.origin);
+
 export function useSocket() {
   const socketRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -11,7 +14,26 @@ export function useSocket() {
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ activeRooms: 0, connectedPeers: 0, totalConnections: 0 });
 
+  // Initial HTTP Fetch & Background Polling Fallback for Production Resilience
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/stats`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          setStats((prev) => ({ ...prev, ...data }));
+        }
+      }
+    } catch (e) {
+      // Quiet fallback if server is starting
+    }
+  }, []);
+
   useEffect(() => {
+    // 1. Initial HTTP Stats Fetch
+    fetchStats();
+
+    // 2. Setup WebSocket Connection
     const socket = createSocketConnection();
     socketRef.current = socket;
 
@@ -19,6 +41,7 @@ export function useSocket() {
       console.log('[Socket] Connected to signaling server:', socket.id);
       setIsConnected(true);
       setError(null);
+      fetchStats();
     });
 
     socket.on('stats-update', (data) => {
@@ -50,7 +73,7 @@ export function useSocket() {
       setRoomId(roomId);
       setPeerId(peerId);
       setIsInitiator(isInitiator);
-      setHasPeer(true); // Joiner sees peer immediately
+      setHasPeer(true);
       setError(null);
     });
 
@@ -69,10 +92,14 @@ export function useSocket() {
       setError(message);
     });
 
+    // 3. 15-second background polling fallback
+    const pollInterval = setInterval(fetchStats, 15000);
+
     return () => {
+      clearInterval(pollInterval);
       socket.disconnect();
     };
-  }, []);
+  }, [fetchStats]);
 
   const createRoom = useCallback(() => {
     if (socketRef.current) {
@@ -114,4 +141,3 @@ export function useSocket() {
     setError
   };
 }
-
