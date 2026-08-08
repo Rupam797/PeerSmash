@@ -1,8 +1,9 @@
 {
-  "name": "dropbeam-server",
+  "name": "peersmash-server",
   "version": "1.0.0",
   "type": "module",
-  "description": "DropBeam WebRTC Signaling Server",
+  "description": "PeerSmash WebRTC Signaling Server",
+
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

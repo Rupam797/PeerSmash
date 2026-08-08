@@ -1,6 +1,6 @@
-# ⚡ DropBeam — P2P Browser File Sharing App
+# ⚡ PeerSmash — P2P Browser File Sharing App
 
-DropBeam is a high-performance, zero-server peer-to-peer file sharing application. Files transfer **directly between two browser sessions** via WebRTC DataChannels. The Node.js backend serves strictly as a lightweight signaling server to exchange connection metadata (SDP offers/answers & ICE candidates). **Zero bytes of file data are ever sent to, processed by, or stored on any server.**
+PeerSmash is a high-performance, zero-server peer-to-peer file sharing application. Files transfer **directly between two browser sessions** via WebRTC DataChannels. The Node.js backend serves strictly as a lightweight signaling server to exchange connection metadata (SDP offers/answers & ICE candidates). **Zero bytes of file data are ever sent to, processed by, or stored on any server.**
 
 ---
 
@@ -39,6 +39,7 @@ DropBeam is a high-performance, zero-server peer-to-peer file sharing applicatio
 - **⚡ Direct P2P Data Channels**: Native WebRTC `RTCDataChannel` streaming for direct peer transfers.
 - **🛡️ 100% Client-Side Privacy**: Server never touches file binary data or file names.
 - **🔄 Backpressure Control**: Implements `bufferedAmountLowThreshold` with 16KB chunking to prevent memory leaks and tab crashes during large file transfers.
+- **👥 Real-Time Visitor Metrics**: Live user and room status badges broadcasted across clients.
 - **📱 Instant Mobile Pairing (QR Code)**: Built-in QR code modal allowing mobile devices to scan and join room links instantly.
 - **📊 Real-Time Metrics**: Live speed calculation (MB/s), percentage progress bar, and estimated time remaining (ETA).
 - **📂 Multi-File Queue**: Supports dragging and dropping multiple files with progress tracking per file.
@@ -49,7 +50,7 @@ DropBeam is a high-performance, zero-server peer-to-peer file sharing applicatio
 ## 📁 Project Structure
 
 ```
-dropbeam/
+peersmash/
 ├── client/                 # React + Vite frontend
 │   ├── public/
 │   ├── src/
@@ -57,12 +58,12 @@ dropbeam/
 │   │   │   ├── ConnectionStatus.jsx  # Connection badge & room link
 │   │   │   ├── FileQueue.jsx         # Multi-file queue & downloads list
 │   │   │   ├── FileTransfer.jsx      # Drag & drop upload area
-│   │   │   ├── Header.jsx            # Top navbar & server indicator
+│   │   │   ├── Header.jsx            # Top navbar & live visitor stats
 │   │   │   ├── ProgressBar.jsx       # Real-time speed & progress bar
 │   │   │   ├── QRCodeModal.jsx       # Mobile QR pairing modal
-│   │   │   └── RoomJoin.jsx          # Room creation & join screen
+│   │   │   └── RoomJoin.jsx          # Room creation & live usage banner
 │   │   ├── hooks/
-│   │   │   ├── useSocket.js          # Socket.IO connection & event handler
+│   │   │   ├── useSocket.js          # Socket.IO connection & stats handler
 │   │   │   └── useWebRTC.js          # WebRTC RTCPeerConnection lifecycle
 │   │   ├── services/
 │   │   │   └── signaling.js          # Socket factory service
@@ -86,6 +87,7 @@ dropbeam/
 │   ├── .env                          # Server environment variables
 │   └── package.json
 │
+├── render.yaml             # Render single-service deployment spec
 └── README.md
 ```
 
@@ -97,67 +99,12 @@ dropbeam/
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 
-### 2. Backend Setup
+### 2. Run Both Frontend & Server
 ```bash
-cd server
-npm install
-npm run dev
+npm run build
+npm start
 ```
-The signaling server will start on **http://localhost:4000** with health checks available at **http://localhost:4000/health**.
-
-### 3. Frontend Setup
-In a separate terminal window:
-```bash
-cd client
-npm install
-npm run dev
-```
-The React Vite app will launch on **http://localhost:5173**.
-
----
-
-## 🌐 Deployment Instructions
-
-### Frontend (Deploy to Vercel or Netlify)
-1. Push `client/` to your Git repository.
-2. In Vercel, set Root Directory to `client`.
-3. Add Environment Variable:
-   ```env
-   VITE_SIGNALING_SERVER_URL=https://your-signaling-server.onrender.com
-   ```
-4. Deploy!
-
-### Backend (Deploy to Render or Railway)
-> [!IMPORTANT]
-> **Do not deploy the server to Vercel Serverless Functions.** Socket.IO requires a persistent long-running process for room management and WebRTC signaling.
-1. Push `server/` to your Git repository.
-2. In Render or Railway, create a new **Web Service**.
-3. Set Build Command: `npm install`
-4. Set Start Command: `npm start`
-5. Add Environment Variables:
-   ```env
-   PORT=4000
-   CLIENT_URL=https://your-dropbeam-app.vercel.app
-   ```
-6. Deploy!
-
----
-
-## 🌊 Technical Transfer Protocol & Flow
-
-1. **Room Allocation**:
-   - Sender creates a room. `roomManager.js` assigns a random 6-character code (e.g. `BEAM88`).
-   - Receiver joins using the code or direct QR code link (`?room=BEAM88`).
-   - Server restricts room occupancy to max 2 peers.
-
-2. **WebRTC Peer Negotiation**:
-   - Host peer creates `RTCPeerConnection` and `RTCDataChannel("file-transfer")`.
-   - Signaling server relays `offer` SDP -> Receiver generates `answer` SDP -> ICE candidates exchanged (`stun:stun.l.google.com:19302`).
-
-3. **Backpressure Streaming**:
-   - Files are sliced into 16,384 byte (16KB) `ArrayBuffer` chunks.
-   - Sender monitors `dataChannel.bufferedAmount`. If buffer exceeds 64KB, sending pauses until the `bufferedamountlow` event fires.
-   - Receiver concatenates incoming `ArrayBuffer` chunks into a single `Blob` object and triggers browser file download.
+Open **http://localhost:4000** to view the app!
 
 ---
 

@@ -1,6 +1,7 @@
 services:
   - type: web
-    name: dropbeam
+    name: peersmash
+
     env: node
     region: singapore
     plan: free

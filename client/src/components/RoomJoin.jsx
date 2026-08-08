@@ -257,7 +257,8 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
               maxLength={6}
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-              placeholder="e.g. BEAM88"
+              placeholder="e.g. SMASH8"
+
               className="room-code-input"
               style={{
                 width: '100%',

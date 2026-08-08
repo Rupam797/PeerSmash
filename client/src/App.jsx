@@ -134,7 +134,8 @@ export default function App() {
           </span>
         </div>
         <p style={{ margin: 0 }}>
-          DropBeam — High-Performance Peer-to-Peer Browser File Sharing.
+          PeerSmash — High-Performance Peer-to-Peer Browser File Sharing.
+
         </p>
       </footer>
     </div>

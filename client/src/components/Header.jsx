@@ -43,7 +43,8 @@ export function Header({ isConnected, roomId, stats, onOpenQR }) {
             letterSpacing: '-0.02em',
             margin: 0
           }}>
-            DropBeam
+            PeerSmash
+
           </h1>
           <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
             Zero-Server P2P Streaming

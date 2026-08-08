@@ -30,7 +30,8 @@ app.get('/health', (req, res) => {
   const stats = roomManager.getStats();
   res.status(200).json({
     status: 'ok',
-    service: 'DropBeam Signaling Server',
+    service: 'PeerSmash Signaling Server',
+
     timestamp: new Date().toISOString(),
     activeRooms: stats.activeRooms,
     connectedPeers: stats.connectedPeers
@@ -167,7 +168,8 @@ function handleDisconnect(socket) {
 // Start Server
 server.listen(config.port, () => {
   console.log(`
-⚡ DropBeam Signaling Server running!
+⚡ PeerSmash Signaling Server running!
+
 🚀 Server listening on port ${config.port}
 🔗 Health Check: http://localhost:${config.port}/health
   `);

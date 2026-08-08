@@ -1,5 +1,6 @@
 /**
- * DropBeam File Chunker & Backpressure Streamer
+ * PeerSmash File Chunker & Backpressure Streamer
+
  * Handles 16KB WebRTC DataChannel chunking, backpressure control,
  * speed calculations, and stream reconstruction into Blob objects.
  */
