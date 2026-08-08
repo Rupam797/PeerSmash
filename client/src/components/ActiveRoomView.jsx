@@ -295,7 +295,7 @@ export function ActiveRoomView({
               Send File
             </h3>
             <span style={{ fontSize: '0.82rem', color: '#5A5E6B' }}>
-              Max file size: 100 MB
+              Max file size: 1 GB
             </span>
           </div>
 

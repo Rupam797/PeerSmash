@@ -6,7 +6,7 @@ import { RoomJoin } from './components/RoomJoin';
 import { ActiveRoomView } from './components/ActiveRoomView';
 import { QRCodeModal } from './components/QRCodeModal';
 import { InfoModal } from './components/InfoModal';
-import { Shield, Lock } from 'lucide-react';
+import { Shield, Lock, Github } from 'lucide-react';
 import { PeerSmashIcon } from './components/PeerSmashIcon';
 
 export default function App() {
@@ -143,7 +143,7 @@ export default function App() {
         marginTop: '3rem',
         background: 'var(--bg-card)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.8rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.8rem', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600 }}>
             <PeerSmashIcon size={16} /> WebRTC DataChannels
           </span>
@@ -154,9 +154,40 @@ export default function App() {
             <Shield size={15} color="var(--brand-mint)" /> Zero Server Storage
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-          PeerSmash — Empowering peers to connect, collaborate and achieve more together.
-        </p>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.6rem',
+          fontSize: '0.82rem',
+          color: 'var(--text-muted)',
+          marginTop: '0.6rem',
+          flexWrap: 'wrap'
+        }}>
+          <span>© {new Date().getFullYear()} PeerSmash. All rights reserved.</span>
+          <span style={{ opacity: 0.4 }}>•</span>
+          <span>Crafted by <strong style={{ color: 'var(--text-main)' }}>Rupam Giri</strong></span>
+          <span style={{ opacity: 0.4 }}>•</span>
+          <a
+            href="https://github.com/Rupam797"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              color: 'var(--brand-mint)',
+              textDecoration: 'none',
+              fontWeight: 600,
+              transition: 'var(--transition-fast)'
+            }}
+            title="Rupam Giri on GitHub"
+          >
+            <Github size={15} />
+            <span>@Rupam797</span>
+          </a>
+        </div>
       </footer>
     </div>
   );
