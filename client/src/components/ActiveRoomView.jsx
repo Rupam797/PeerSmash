@@ -256,6 +256,16 @@ export function ActiveRoomView({
                 WebRTC DataChannel encrypted & connected
               </p>
             </div>
+          ) : hasPeer ? (
+            <div>
+              <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', marginBottom: '0.4rem' }}>
+                Establishing P2P Link...
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: '#9CA3AF', margin: 0, lineHeight: 1.4 }}>
+                Peer connected! Exchanging WebRTC encryption keys
+              </p>
+            </div>
           ) : (
             <div>
               <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
@@ -295,7 +305,6 @@ export function ActiveRoomView({
             multiple
             onChange={handleFileChange}
             style={{ display: 'none' }}
-            disabled={!isConnected}
           />
 
           <div style={{
@@ -303,34 +312,31 @@ export function ActiveRoomView({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.5rem 0',
+            padding: '1rem 0',
             textAlign: 'center'
           }}>
-            {isConnected ? (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  backgroundColor: '#50E3C2',
-                  color: '#0B0C0E',
-                  fontWeight: 700,
-                  padding: '0.75rem 1.4rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  fontSize: '0.95rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <FilePlus size={18} />
-                <span>Select Files</span>
-              </button>
-            ) : (
-              <span style={{ fontSize: '0.88rem', color: '#5A5E6B', fontWeight: 500 }}>
-                No connected peers available
-              </span>
-            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                backgroundColor: 'var(--brand-mint)',
+                color: '#0B0C0E',
+                fontWeight: 700,
+                padding: '0.75rem 1.4rem',
+                borderRadius: '10px',
+                border: 'none',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <FilePlus size={18} />
+              <span>Select Files</span>
+            </button>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.6rem' }}>
+              {isConnected ? 'Peer connected — ready to transfer' : 'Files will auto-send as soon as peer joins'}
+            </span>
           </div>
         </div>
       </div>
