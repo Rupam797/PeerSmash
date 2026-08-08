@@ -1,102 +1,174 @@
 import React from 'react';
-import { QrCode, Wifi, WifiOff, Users } from 'lucide-react';
+import { Sun, Moon, Github, Star, Users } from 'lucide-react';
 import { PeerSmashAppIcon } from './PeerSmashIcon';
 
-export function Header({ isConnected, roomId, stats, onOpenQR }) {
-  const connectedPeers = stats?.connectedPeers ?? 0;
-  const activeRooms = stats?.activeRooms ?? 0;
+export function Header({
+  activeTab = 'home',
+  onNavigate,
+  theme = 'dark',
+  onToggleTheme,
+  stats
+}) {
+  const isDark = theme === 'dark';
+  const connectedPeers = stats?.connectedPeers ?? 1;
 
   return (
-    <header style={{
+    <div style={{
       width: '100%',
-      padding: '1.1rem 2rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottom: '1px solid rgba(0, 200, 150, 0.12)',
-      background: 'rgba(6, 18, 25, 0.88)',
-      backdropFilter: 'blur(16px)',
+      maxWidth: '840px',
+      margin: '0.75rem auto 0 auto',
+      padding: '0 0.75rem',
       position: 'sticky',
-      top: 0,
+      top: '0.75rem',
       zIndex: 100
     }}>
-      {/* Brand Logo & Tagline */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-        <PeerSmashAppIcon size={40} borderRadius={12} />
-        <div>
-          <h1 style={{
-            fontSize: '1.45rem',
-            fontWeight: '800',
-            color: '#FFFFFF',
-            letterSpacing: '-0.025em',
-            margin: 0,
-            lineHeight: 1.1
+      <header style={{
+        width: '100%',
+        padding: '0.45rem 1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--border-nav)',
+        borderRadius: '11px',
+        boxShadow: isDark ? '0 5px 18px rgba(0,0,0,0.32)' : '0 2px 10px rgba(0,0,0,0.05)',
+        backdropFilter: 'blur(12px)',
+        transition: 'var(--transition-fast)'
+      }}>
+        {/* Far Left: Logo & App Name */}
+        <div 
+          onClick={() => onNavigate('home')}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.15rem',
+            cursor: 'pointer',
+            userSelect: 'none'
+          }}
+        >
+          <PeerSmashAppIcon width={56} />
+          <span style={{
+            fontFamily: "'Space Grotesk', -apple-system, sans-serif",
+            fontSize: '1.12rem',
+            fontWeight: 700,
+            color: 'var(--text-main)',
+            letterSpacing: '-0.02em'
           }}>
-            PeerSmash
-          </h1>
-          <span style={{ fontSize: '0.75rem', color: '#9DB2C6', fontWeight: 600 }}>
-            Connect. Collaborate. Smash Goals.
+            Peer<span style={{ color: 'var(--brand-mint)' }}>Smash</span>
           </span>
         </div>
-      </div>
 
-      {/* Header Actions & Live Users Pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        {/* Live Users Counter Pill */}
-        {isConnected && (
+        {/* Center: Nav Links (Home, How it works, About) */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+          <button
+            onClick={() => onNavigate('home')}
+            className={`nav-link ${activeTab === 'home' ? 'active' : ''}`}
+            style={{ fontSize: '0.85rem', padding: '0.3rem 0.65rem' }}
+          >
+            Home
+          </button>
+          <button
+            onClick={() => onNavigate('how-it-works')}
+            className={`nav-link ${activeTab === 'how-it-works' ? 'active' : ''}`}
+            style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem' }}
+          >
+            How it works
+          </button>
+          <button
+            onClick={() => onNavigate('about')}
+            className={`nav-link ${activeTab === 'about' ? 'active' : ''}`}
+            style={{ fontSize: '0.85rem', padding: '0.3rem 0.65rem' }}
+          >
+            About
+          </button>
+        </nav>
+
+        {/* Right Side: Online Status Pill + GitHub Star + Theme Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          {/* Live Online Users Badge Pill */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.7rem',
-            padding: '0.4rem 0.9rem',
-            borderRadius: '20px',
-            background: 'rgba(0, 200, 150, 0.1)',
-            border: '1px solid rgba(0, 200, 150, 0.28)',
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            color: '#FFFFFF'
-          }} title={`${connectedPeers} user(s) live across ${activeRooms} room(s)`}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#00C896' }}>
-              <div className="pulse-dot green" style={{ width: '6px', height: '6px' }}></div>
-              <Users size={14} />
-              <span>{connectedPeers} {connectedPeers === 1 ? 'User' : 'Users'} Live</span>
-            </div>
-            {activeRooms > 0 && (
-              <span style={{ color: '#9DB2C6', borderLeft: '1px solid rgba(255, 255, 255, 0.15)', paddingLeft: '0.6rem' }}>
-                {activeRooms} {activeRooms === 1 ? 'Room' : 'Rooms'}
-              </span>
-            )}
+            gap: '0.35rem',
+            padding: '0.3rem 0.65rem',
+            borderRadius: '8px',
+            backgroundColor: 'var(--bg-input)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-main)',
+            fontSize: '0.78rem',
+            fontWeight: 600
+          }} title={`${connectedPeers} user(s) currently online`}>
+            <div className="pulse-dot green" style={{ width: '6px', height: '6px' }}></div>
+            <span>{connectedPeers} Online</span>
           </div>
-        )}
 
-        {roomId && (
-          <button
-            onClick={onOpenQR}
-            className="btn-secondary"
-            style={{ padding: '0.5rem 0.9rem', fontSize: '0.85rem' }}
-            title="Scan QR to join on mobile"
+          {/* Total Users Served Pill */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.3rem 0.65rem',
+            borderRadius: '8px',
+            backgroundColor: 'var(--bg-input)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-main)',
+            fontSize: '0.78rem',
+            fontWeight: 600
+          }} title={`${stats?.totalConnections ?? 0} total user sessions served`}>
+            <Users size={12} color="var(--brand-mint)" />
+            <span>{stats?.totalConnections ?? 0} Total Users</span>
+          </div>
+
+          {/* GitHub Star Badge Link */}
+          <a
+            href="https://github.com/Rupam797/Beam-Drop"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.3rem 0.65rem',
+              borderRadius: '8px',
+              backgroundColor: 'var(--bg-input)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'var(--transition-fast)'
+            }}
+            title="Star PeerSmash on GitHub"
           >
-            <QrCode size={16} color="#00C896" />
-            <span>Mobile QR</span>
-          </button>
-        )}
+            <Github size={14} />
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <Star size={12} color="#F59E0B" fill="#F59E0B" /> Star
+            </span>
+          </a>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.4rem 0.8rem',
-          borderRadius: '20px',
-          background: isConnected ? 'rgba(0, 200, 150, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-          border: `1px solid ${isConnected ? 'rgba(0, 200, 150, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          color: isConnected ? '#00C896' : '#EF4444'
-        }}>
-          {isConnected ? <Wifi size={14} /> : <WifiOff size={14} />}
-          <span>{isConnected ? 'Signaling Online' : 'Signaling Offline'}</span>
+          {/* Light/Dark Mode Toggle Button */}
+          <button
+            onClick={onToggleTheme}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              backgroundColor: 'var(--bg-input)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              cursor: 'pointer',
+              transition: 'var(--transition-fast)'
+            }}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {isDark ? <Sun size={14} color="#50E3C2" /> : <Moon size={14} color="#00C896" />}
+          </button>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 }

@@ -43,6 +43,12 @@ app.get('/api/stats', (req, res) => {
   res.status(200).json(roomManager.getStats());
 });
 
+app.get('/api/reset-stats', (req, res) => {
+  roomManager.resetStats();
+  broadcastStats();
+  res.status(200).json({ success: true, stats: roomManager.getStats() });
+});
+
 // SPA fallback routing for client
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
@@ -69,8 +75,11 @@ function broadcastStats() {
 }
 
 io.on('connection', (socket) => {
-  roomManager.totalConnectionsCount++;
-  console.log(`[Socket] Connected: ${socket.id}`);
+  const visitorId = socket.handshake.auth?.visitorId || socket.handshake.query?.visitorId;
+  if (visitorId) {
+    roomManager.registerVisitor(visitorId);
+  }
+  console.log(`[Socket] Connected: ${socket.id} (Visitor: ${visitorId || 'anonymous'})`);
   broadcastStats();
 
   // Create Room

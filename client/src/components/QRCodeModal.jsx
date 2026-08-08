@@ -83,7 +83,7 @@ export function QRCodeModal({ roomId, onClose }) {
           padding: '1.2rem',
           background: '#FFFFFF',
           borderRadius: '20px',
-          boxShadow: '0 0 35px rgba(0, 200, 150, 0.35)',
+          boxShadow: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

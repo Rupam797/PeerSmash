@@ -1,21 +1,75 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const statsFilePath = path.resolve(__dirname, '../../stats.json');
+
 /**
  * Room Manager Service
  * Handles in-memory P2P signaling room state.
- * Restricts rooms to max 2 peers (1 initiator, 1 joiner).
+ * Restricts rooms to max 8 peers (1 initiator, 7 joiners).
  */
-
 class RoomManager {
   constructor() {
-    // Map<roomId, { peers: Set<socketId>, initiatorId: string, createdAt: number }>
     this.rooms = new Map();
-    // Map<socketId, roomId>
     this.socketToRoom = new Map();
+    this.knownVisitors = new Set();
+    
+    const loaded = this.loadPersistedStats();
+    this.totalConnectionsCount = loaded.totalConnectionsCount;
+    if (Array.isArray(loaded.knownVisitors)) {
+      this.knownVisitors = new Set(loaded.knownVisitors);
+    }
+  }
+
+  loadPersistedStats() {
+    try {
+      if (fs.existsSync(statsFilePath)) {
+        const data = JSON.parse(fs.readFileSync(statsFilePath, 'utf8'));
+        return {
+          totalConnectionsCount: data.totalConnectionsCount || 0,
+          knownVisitors: data.knownVisitors || []
+        };
+      }
+    } catch (e) {
+      console.error('[RoomManager] Failed to load stats.json:', e.message);
+    }
+    return { totalConnectionsCount: 0, knownVisitors: [] };
+  }
+
+  savePersistedStats() {
+    try {
+      fs.writeFileSync(statsFilePath, JSON.stringify({
+        totalConnectionsCount: this.totalConnectionsCount,
+        knownVisitors: Array.from(this.knownVisitors),
+        updatedAt: new Date().toISOString()
+      }, null, 2));
+    } catch (e) {
+      console.error('[RoomManager] Failed to save stats.json:', e.message);
+    }
+  }
+
+  resetStats() {
     this.totalConnectionsCount = 0;
-    this.totalTransfersCompleted = 0;
+    this.knownVisitors.clear();
+    this.savePersistedStats();
+  }
+
+  registerVisitor(visitorId) {
+    if (!visitorId) return false;
+    if (!this.knownVisitors.has(visitorId)) {
+      this.knownVisitors.add(visitorId);
+      this.totalConnectionsCount++;
+      this.savePersistedStats();
+      return true; // New unique visitor counted
+    }
+    return false; // Existing visitor reconnected
   }
 
   generateRoomCode(length = 6) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous chars like O, 0, I, 1
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < length; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -24,7 +78,6 @@ class RoomManager {
   }
 
   createRoom(socketId) {
-    // Remove from existing room if any
     this.leaveRoom(socketId);
 
     let roomId = this.generateRoomCode();
@@ -50,11 +103,10 @@ class RoomManager {
       return { success: false, reason: 'NOT_FOUND', message: 'Room code not found or expired.' };
     }
 
-    if (room.peers.size >= 2) {
-      return { success: false, reason: 'FULL', message: 'This room is already full (max 2 peers).' };
+    if (room.peers.size >= 8) {
+      return { success: false, reason: 'FULL', message: 'This room is already full (max 8 peers).' };
     }
 
-    // Leave any existing room first
     this.leaveRoom(socketId);
 
     room.peers.add(socketId);
@@ -80,11 +132,9 @@ class RoomManager {
     room.peers.delete(socketId);
 
     if (room.peers.size === 0) {
-      // Room empty, clean up
       this.rooms.delete(roomId);
       return { roomId, empty: true, remainingPeerId: null };
     } else {
-      // Promote remaining peer if initiator left
       const remainingPeerId = Array.from(room.peers)[0];
       if (room.initiatorId === socketId) {
         room.initiatorId = remainingPeerId;

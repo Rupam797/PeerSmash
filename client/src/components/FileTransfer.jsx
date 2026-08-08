@@ -108,7 +108,7 @@ export function FileTransfer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: isConnected ? '0 0 30px rgba(0, 200, 150, 0.3)' : 'none',
+          boxShadow: 'none',
           transform: isDragging ? 'scale(1.1)' : 'scale(1)',
           transition: 'transform 0.2s ease'
         }}>

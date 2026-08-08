@@ -100,7 +100,7 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
           height: '100%',
           background: 'linear-gradient(90deg, #2DD4BF 0%, #00C896 50%, #00897B 100%)',
           borderRadius: '10px',
-          boxShadow: '0 0 16px rgba(0, 200, 150, 0.65)',
+          boxShadow: 'none',
           transition: 'width 0.15s ease-out'
         }} />
       </div>

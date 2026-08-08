@@ -3,9 +3,9 @@ import { useSocket } from './hooks/useSocket';
 import { useWebRTC } from './hooks/useWebRTC';
 import { Header } from './components/Header';
 import { RoomJoin } from './components/RoomJoin';
-import { ConnectionStatus } from './components/ConnectionStatus';
-import { FileTransfer } from './components/FileTransfer';
+import { ActiveRoomView } from './components/ActiveRoomView';
 import { QRCodeModal } from './components/QRCodeModal';
+import { InfoModal } from './components/InfoModal';
 import { Shield, Lock } from 'lucide-react';
 import { PeerSmashIcon } from './components/PeerSmashIcon';
 
@@ -43,6 +43,21 @@ export default function App() {
   });
 
   const [showQR, setShowQR] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Light / Dark Mode state management
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('peersmash_theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('peersmash_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Check URL query parameters for auto room join (e.g. ?room=BEAM88)
   useEffect(() => {
@@ -59,17 +74,19 @@ export default function App() {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
+      backgroundColor: 'var(--bg-dark)'
     }}>
       <div>
         <Header
-          isConnected={isConnected}
-          roomId={roomId}
+          activeTab={activeTab}
+          onNavigate={(tab) => setActiveTab(tab)}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           stats={stats}
-          onOpenQR={() => setShowQR(true)}
         />
 
-        <main style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+        <main style={{ padding: '1.5rem 1rem', maxWidth: '920px', margin: '0 auto', width: '100%' }}>
           {!roomId ? (
             <RoomJoin
               onCreateRoom={createRoom}
@@ -79,31 +96,34 @@ export default function App() {
             />
 
           ) : (
-            <div>
-              <ConnectionStatus
-                roomId={roomId}
-                connectionStatus={connectionStatus}
-                hasPeer={hasPeer}
-                isInitiator={isInitiator}
-                natError={natError}
-                onLeaveRoom={leaveRoom}
-              />
-
-              <FileTransfer
-                dataChannelStatus={dataChannelStatus}
-                connectionStatus={connectionStatus}
-                queue={queue}
-                currentSendingFile={currentSendingFile}
-                receivingFile={receivingFile}
-                completedFiles={completedFiles}
-                onAddFiles={addFilesToQueue}
-                onCancelFile={cancelFile}
-                onClearQueue={clearQueue}
-              />
-            </div>
+            <ActiveRoomView
+              roomId={roomId}
+              connectionStatus={connectionStatus}
+              dataChannelStatus={dataChannelStatus}
+              hasPeer={hasPeer}
+              isInitiator={isInitiator}
+              natError={natError}
+              queue={queue}
+              currentSendingFile={currentSendingFile}
+              receivingFile={receivingFile}
+              completedFiles={completedFiles}
+              onAddFiles={addFilesToQueue}
+              onCancelFile={cancelFile}
+              onClearQueue={clearQueue}
+              onLeaveRoom={leaveRoom}
+              onOpenQR={() => setShowQR(true)}
+            />
           )}
         </main>
       </div>
+
+      {/* Info Modals for "How it works" and "About" */}
+      {activeTab !== 'home' && (
+        <InfoModal
+          activeTab={activeTab}
+          onClose={() => setActiveTab('home')}
+        />
+      )}
 
       {/* QR Code Popup Modal */}
       {showQR && roomId && (
@@ -117,24 +137,24 @@ export default function App() {
       <footer style={{
         padding: '1.6rem 1.5rem',
         textAlign: 'center',
-        borderTop: '1px solid rgba(0, 200, 150, 0.12)',
-        color: '#9DB2C6',
+        borderTop: '1px solid var(--border-subtle)',
+        color: 'var(--text-muted)',
         fontSize: '0.85rem',
         marginTop: '3rem',
-        background: 'rgba(6, 18, 25, 0.95)'
+        background: 'var(--bg-card)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.8rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
-            <PeerSmashIcon size={16} variant="monochrome" /> WebRTC DataChannels
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600 }}>
+            <PeerSmashIcon size={16} /> WebRTC DataChannels
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
-            <Lock size={15} color="#00C896" /> End-to-End P2P
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600 }}>
+            <Lock size={15} color="var(--brand-mint)" /> End-to-End P2P
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
-            <Shield size={15} color="#00C896" /> Zero Server Storage
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600 }}>
+            <Shield size={15} color="var(--brand-mint)" /> Zero Server Storage
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: '#63788D' }}>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
           PeerSmash — Empowering peers to connect, collaborate and achieve more together.
         </p>
       </footer>
