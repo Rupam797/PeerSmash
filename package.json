@@ -1,0 +1,10 @@
+{
+  "name": "dropbeam",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DropBeam Full-Stack Monorepo Deployment",
+  "scripts": {
+    "build": "npm --prefix client install && npm --prefix client run build && npm --prefix server install",
+    "start": "npm --prefix server start"
+  }
+}

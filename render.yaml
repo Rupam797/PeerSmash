@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: dropbeam
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /health

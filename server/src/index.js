@@ -15,7 +15,15 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+
+// Serve static frontend files in production
+app.use(express.static(clientDistPath));
 
 // Health Check Endpoint (for Render / Railway uptime checks)
 app.get('/health', (req, res) => {
@@ -33,6 +41,17 @@ app.get('/health', (req, res) => {
 app.get('/api/stats', (req, res) => {
   res.status(200).json(roomManager.getStats());
 });
+
+// SPA fallback routing for client
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+    return next();
+  }
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) next();
+  });
+});
+
 
 // Socket.IO Setup
 const io = new Server(server, {
