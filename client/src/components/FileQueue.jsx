@@ -3,12 +3,12 @@ import { File, Download, CheckCircle, Clock, X, Trash2, FileText, Image, Video, 
 import { formatBytes } from '../utils/formatters';
 
 function getFileIcon(mimeType = '') {
-  if (mimeType.startsWith('image/')) return <Image size={18} color="#00E5FF" />;
-  if (mimeType.startsWith('video/')) return <Video size={18} color="#2A7FFF" />;
+  if (mimeType.startsWith('image/')) return <Image size={18} color="#2DD4BF" />;
+  if (mimeType.startsWith('video/')) return <Video size={18} color="#00C896" />;
   if (mimeType.startsWith('audio/')) return <Music size={18} color="#F59E0B" />;
   if (mimeType.includes('zip') || mimeType.includes('tar') || mimeType.includes('compressed')) return <Archive size={18} color="#EC4899" />;
-  if (mimeType.includes('pdf') || mimeType.includes('text') || mimeType.includes('document')) return <FileText size={18} color="#10B981" />;
-  return <File size={18} color="#94A3B8" />;
+  if (mimeType.includes('pdf') || mimeType.includes('text') || mimeType.includes('document')) return <FileText size={18} color="#00C896" />;
+  return <File size={18} color="#9DB2C6" />;
 }
 
 export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onClearQueue }) {
@@ -28,7 +28,7 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
             justifyContent: 'space-between',
             marginBottom: '1rem'
           }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#F8FAFC' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF' }}>
               Transfer Queue ({queue.length})
             </h4>
             <button
@@ -50,8 +50,8 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                   justifyContent: 'space-between',
                   padding: '0.8rem 1rem',
                   borderRadius: '12px',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                  background: 'rgba(6, 18, 25, 0.6)',
+                  border: '1px solid rgba(0, 200, 150, 0.12)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', overflow: 'hidden' }}>
@@ -60,14 +60,14 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                     <div style={{
                       fontSize: '0.9rem',
                       fontWeight: 600,
-                      color: '#F8FAFC',
+                      color: '#FFFFFF',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
                       {item.name}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#9DB2C6' }}>
                       {formatBytes(item.size)}
                     </div>
                   </div>
@@ -75,7 +75,7 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                   {item.status === 'completed' && (
-                    <span style={{ color: '#10B981', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <span style={{ color: '#00C896', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <CheckCircle size={15} /> Sent
                     </span>
                   )}
@@ -85,7 +85,7 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                     </span>
                   )}
                   {item.status === 'sending' && (
-                    <span style={{ color: '#00E5FF', fontSize: '0.8rem', fontWeight: 700 }}>
+                    <span style={{ color: '#00C896', fontSize: '0.8rem', fontWeight: 700 }}>
                       {item.progress ? item.progress.toFixed(0) : 0}%
                     </span>
                   )}
@@ -96,7 +96,7 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#94A3B8',
+                        color: '#9DB2C6',
                         cursor: 'pointer',
                         padding: '0.2rem'
                       }}
@@ -115,7 +115,7 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
       {/* Received Downloads History Section */}
       {hasCompleted && (
         <div className="glass-card glow-border" style={{ padding: '1.4rem', borderRadius: '20px' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '1rem' }}>
             Received Files ({completedFiles.length})
           </h4>
 
@@ -129,8 +129,8 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                   justifyContent: 'space-between',
                   padding: '0.8rem 1rem',
                   borderRadius: '12px',
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.25)'
+                  background: 'rgba(0, 200, 150, 0.08)',
+                  border: '1px solid rgba(0, 200, 150, 0.25)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', overflow: 'hidden' }}>
@@ -139,14 +139,14 @@ export function FileQueue({ queue = [], completedFiles = [], onCancelFile, onCle
                     <div style={{
                       fontSize: '0.9rem',
                       fontWeight: 600,
-                      color: '#F8FAFC',
+                      color: '#FFFFFF',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
                       {file.name}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#10B981', fontWeight: 600 }}>
+                    <div style={{ fontSize: '0.75rem', color: '#00C896', fontWeight: 600 }}>
                       {formatBytes(file.size)} • Download Ready
                     </div>
                   </div>

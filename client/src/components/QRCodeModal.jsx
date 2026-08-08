@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Copy, Check, Smartphone } from 'lucide-react';
+import { PeerSmashIcon } from './PeerSmashIcon';
 
 export function QRCodeModal({ roomId, onClose }) {
   const [copied, setCopied] = useState(false);
@@ -16,8 +17,8 @@ export function QRCodeModal({ roomId, onClose }) {
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(5, 8, 15, 0.85)',
-      backdropFilter: 'blur(10px)',
+      background: 'rgba(6, 18, 25, 0.88)',
+      backdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -29,13 +30,14 @@ export function QRCodeModal({ roomId, onClose }) {
         style={{
           width: '100%',
           maxWidth: '420px',
-          padding: '2rem',
+          padding: '2.2rem 2rem',
           borderRadius: '24px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '1.4rem',
-          position: 'relative'
+          position: 'relative',
+          backgroundColor: '#0B1922'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -48,7 +50,7 @@ export function QRCodeModal({ roomId, onClose }) {
             right: '1.2rem',
             background: 'none',
             border: 'none',
-            color: '#94A3B8',
+            color: '#9DB2C6',
             cursor: 'pointer'
           }}
         >
@@ -56,35 +58,36 @@ export function QRCodeModal({ roomId, onClose }) {
         </button>
 
         {/* Title Header */}
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.3rem 0.8rem',
+            gap: '0.45rem',
+            padding: '0.35rem 0.9rem',
             borderRadius: '20px',
-            background: 'rgba(0, 229, 255, 0.12)',
-            color: '#00E5FF',
+            background: 'rgba(0, 200, 150, 0.12)',
+            color: '#00C896',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            marginBottom: '0.6rem'
+            fontWeight: 800,
+            marginBottom: '0.7rem'
           }}>
             <Smartphone size={14} /> Instant Mobile Pairing
           </div>
-          <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#F8FAFC' }}>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF' }}>
             Scan to Join Room
           </h3>
         </div>
 
-        {/* QR Code Container */}
+        {/* QR Code Container with PeerSmash Logo in Center */}
         <div style={{
           padding: '1.2rem',
           background: '#FFFFFF',
-          borderRadius: '16px',
-          boxShadow: '0 0 30px rgba(0, 229, 255, 0.25)',
+          borderRadius: '20px',
+          boxShadow: '0 0 35px rgba(0, 200, 150, 0.35)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          position: 'relative'
         }}>
           <QRCodeSVG
             value={roomUrl}
@@ -92,7 +95,7 @@ export function QRCodeModal({ roomId, onClose }) {
             level="H"
             includeMargin={true}
             bgColor="#FFFFFF"
-            fgColor="#090D16"
+            fgColor="#061219"
           />
         </div>
 
@@ -101,8 +104,8 @@ export function QRCodeModal({ roomId, onClose }) {
           width: '100%',
           padding: '0.8rem 1rem',
           borderRadius: '12px',
-          background: 'rgba(15, 23, 42, 0.8)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: '#061219',
+          border: '1px solid rgba(0, 200, 150, 0.2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -111,7 +114,7 @@ export function QRCodeModal({ roomId, onClose }) {
           <span style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '0.85rem',
-            color: '#94A3B8',
+            color: '#9DB2C6',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis'
@@ -121,9 +124,9 @@ export function QRCodeModal({ roomId, onClose }) {
           <button
             onClick={copyUrl}
             className="btn-secondary"
-            style={{ padding: '0.4rem 0.7rem', fontSize: '0.8rem', flexShrink: 0 }}
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', flexShrink: 0 }}
           >
-            {copied ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+            {copied ? <Check size={14} color="#00C896" /> : <Copy size={14} />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
         </div>

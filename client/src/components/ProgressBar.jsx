@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Zap, Clock, HardDrive } from 'lucide-react';
+import { X, Zap, Clock } from 'lucide-react';
 import { formatBytes, formatSpeed, formatTimeRemaining } from '../utils/formatters';
 
 export function ProgressBar({ fileData, isSending, onCancel }) {
@@ -35,29 +35,30 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', overflow: 'hidden' }}>
           <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'rgba(42, 127, 255, 0.15)',
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            background: 'rgba(0, 200, 150, 0.15)',
+            border: '1px solid rgba(0, 200, 150, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <Zap size={20} color="#2A7FFF" />
+            <Zap size={20} color="#00C896" />
           </div>
           <div style={{ overflow: 'hidden' }}>
             <h4 style={{
               fontSize: '1.05rem',
               fontWeight: 700,
-              color: '#F8FAFC',
+              color: '#FFFFFF',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}>
               {isSending ? `Sending: ${name}` : `Receiving: ${name}`}
             </h4>
-            <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 500 }}>
+            <span style={{ fontSize: '0.8rem', color: '#9DB2C6', fontWeight: 500 }}>
               {formatBytes(currentBytes)} of {formatBytes(totalBytes)}
             </span>
           </div>
@@ -69,7 +70,7 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#94A3B8',
+              color: '#9DB2C6',
               borderRadius: '8px',
               padding: '0.4rem',
               cursor: 'pointer',
@@ -83,23 +84,23 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
         )}
       </div>
 
-      {/* Progress Bar Container */}
+      {/* Progress Bar Track */}
       <div style={{
         width: '100%',
         height: '14px',
-        background: 'rgba(15, 23, 42, 0.9)',
+        background: '#061219',
         borderRadius: '10px',
         overflow: 'hidden',
         position: 'relative',
         marginBottom: '1rem',
-        border: '1px solid rgba(255, 255, 255, 0.08)'
+        border: '1px solid rgba(0, 200, 150, 0.15)'
       }}>
         <div style={{
           width: `${roundedProgress}%`,
           height: '100%',
-          background: 'linear-gradient(90deg, #2A7FFF 0%, #00E5FF 100%)',
+          background: 'linear-gradient(90deg, #2DD4BF 0%, #00C896 50%, #00897B 100%)',
           borderRadius: '10px',
-          boxShadow: '0 0 15px rgba(0, 229, 255, 0.6)',
+          boxShadow: '0 0 16px rgba(0, 200, 150, 0.65)',
           transition: 'width 0.15s ease-out'
         }} />
       </div>
@@ -110,11 +111,11 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         fontSize: '0.85rem',
-        color: '#94A3B8',
+        color: '#9DB2C6',
         fontWeight: 600
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#00E5FF' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#00C896' }}>
             <Zap size={15} />
             <span>{formatSpeed(speed)}</span>
           </div>
@@ -126,7 +127,7 @@ export function ProgressBar({ fileData, isSending, onCancel }) {
 
         <div style={{
           fontFamily: 'var(--font-mono)',
-          color: '#F8FAFC',
+          color: '#FFFFFF',
           fontSize: '1rem',
           fontWeight: 700
         }}>

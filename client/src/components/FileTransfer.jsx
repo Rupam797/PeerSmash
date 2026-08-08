@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FilePlus, ShieldCheck, Zap, Lock } from 'lucide-react';
+import { UploadCloud, FilePlus } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
 import { FileQueue } from './FileQueue';
 
@@ -64,16 +64,16 @@ export function FileTransfer({
         className={`glass-card ${isDragging ? 'glow-border' : ''}`}
         style={{
           width: '100%',
-          padding: '3rem 2rem',
+          padding: '3.2rem 2rem',
           borderRadius: '24px',
           border: isDragging
-            ? '2px dashed #2A7FFF'
+            ? '2px dashed #00C896'
             : isConnected
-            ? '2px dashed rgba(42, 127, 255, 0.35)'
+            ? '2px dashed rgba(0, 200, 150, 0.4)'
             : '2px dashed rgba(255, 255, 255, 0.1)',
           background: isDragging
-            ? 'rgba(42, 127, 255, 0.12)'
-            : 'rgba(17, 24, 39, 0.6)',
+            ? 'rgba(0, 200, 150, 0.14)'
+            : 'rgba(11, 25, 34, 0.75)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -98,36 +98,36 @@ export function FileTransfer({
         />
 
         <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '20px',
+          width: '68px',
+          height: '68px',
+          borderRadius: '22px',
           background: isConnected
-            ? 'linear-gradient(135deg, rgba(42, 127, 255, 0.2) 0%, rgba(0, 229, 255, 0.2) 100%)'
+            ? 'linear-gradient(135deg, rgba(0, 230, 165, 0.25) 0%, rgba(0, 200, 150, 0.15) 100%)'
             : 'rgba(255, 255, 255, 0.05)',
-          border: `1px solid ${isConnected ? 'rgba(42, 127, 255, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
+          border: `1px solid ${isConnected ? 'rgba(0, 200, 150, 0.45)' : 'rgba(255, 255, 255, 0.1)'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: isConnected ? '0 0 25px rgba(42, 127, 255, 0.25)' : 'none',
+          boxShadow: isConnected ? '0 0 30px rgba(0, 200, 150, 0.3)' : 'none',
           transform: isDragging ? 'scale(1.1)' : 'scale(1)',
           transition: 'transform 0.2s ease'
         }}>
-          <UploadCloud size={32} color={isConnected ? '#00E5FF' : '#64748B'} />
+          <UploadCloud size={34} color={isConnected ? '#00C896' : '#63788D'} />
         </div>
 
         <div>
           <h3 style={{
-            fontSize: '1.3rem',
-            fontWeight: 700,
-            color: isConnected ? '#F8FAFC' : '#94A3B8',
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            color: isConnected ? '#FFFFFF' : '#9DB2C6',
             marginBottom: '0.4rem'
           }}>
-            {isConnected ? 'Drag & Drop Files Here' : 'Waiting for WebRTC DataChannel...'}
+            {isConnected ? 'Drag & Drop Files Here' : 'Waiting for WebRTC Link...'}
           </h3>
-          <p style={{ fontSize: '0.9rem', color: '#64748B' }}>
+          <p style={{ fontSize: '0.9rem', color: '#9DB2C6' }}>
             {isConnected
-              ? 'or click to browse from your device (Multiple files supported)'
-              : 'Files will transfer directly to recipient once peer connects'}
+              ? 'or click to select files from your device (Multiple files supported)'
+              : 'Files will stream directly to recipient once peer joins room'}
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export function FileTransfer({
           <button
             type="button"
             className="btn-primary"
-            style={{ padding: '0.7rem 1.4rem', fontSize: '0.9rem' }}
+            style={{ padding: '0.75rem 1.6rem', fontSize: '0.92rem' }}
             onClick={(e) => {
               e.stopPropagation();
               fileInputRef.current?.click();

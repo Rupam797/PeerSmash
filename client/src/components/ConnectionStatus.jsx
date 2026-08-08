@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Users, ArrowLeft, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Copy, Check, Users, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export function ConnectionStatus({
   roomId,
@@ -30,8 +30,8 @@ export function ConnectionStatus({
 
     if (connectionStatus === 'CONNECTED') {
       return {
-        label: 'P2P Connected',
-        subtext: 'WebRTC DataChannel active & encrypted.',
+        label: 'P2P Link Active',
+        subtext: 'WebRTC DataChannel encrypted & streaming.',
         badgeClass: 'badge-connected',
         dotClass: 'pulse-dot green'
       };
@@ -48,7 +48,7 @@ export function ConnectionStatus({
 
     return {
       label: 'Waiting for Peer to Join',
-      subtext: `Share code ${roomId} with your recipient.`,
+      subtext: `Share code ${roomId} with recipient.`,
       badgeClass: 'badge-connecting',
       dotClass: 'pulse-dot yellow'
     };
@@ -83,7 +83,7 @@ export function ConnectionStatus({
           </button>
 
           <div>
-            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '0.75rem', color: '#9DB2C6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Room Code
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -91,7 +91,7 @@ export function ConnectionStatus({
                 fontFamily: 'var(--font-mono)',
                 fontSize: '1.4rem',
                 fontWeight: 800,
-                color: '#2A7FFF',
+                color: '#00C896',
                 letterSpacing: '2px'
               }}>
                 {roomId}
@@ -101,7 +101,7 @@ export function ConnectionStatus({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: copied ? '#10B981' : '#94A3B8',
+                  color: copied ? '#00C896' : '#9DB2C6',
                   cursor: 'pointer',
                   padding: '0.3rem',
                   display: 'flex',
@@ -124,8 +124,8 @@ export function ConnectionStatus({
         </div>
 
         {/* Right: Peer Role Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem' }}>
-          <Users size={16} color="#00E5FF" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#9DB2C6', fontSize: '0.85rem' }}>
+          <Users size={16} color="#00C896" />
           <span>Role: <strong>{isInitiator ? 'Sender (Host)' : 'Receiver (Joiner)'}</strong></span>
         </div>
       </div>

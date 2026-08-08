@@ -6,7 +6,8 @@ import { RoomJoin } from './components/RoomJoin';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { FileTransfer } from './components/FileTransfer';
 import { QRCodeModal } from './components/QRCodeModal';
-import { Shield, Zap, Lock, Heart } from 'lucide-react';
+import { Shield, Lock } from 'lucide-react';
+import { PeerSmashIcon } from './components/PeerSmashIcon';
 
 export default function App() {
   const {
@@ -114,28 +115,27 @@ export default function App() {
 
       {/* Footer */}
       <footer style={{
-        padding: '1.5rem',
+        padding: '1.6rem 1.5rem',
         textAlign: 'center',
-        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-        color: '#64748B',
+        borderTop: '1px solid rgba(0, 200, 150, 0.12)',
+        color: '#9DB2C6',
         fontSize: '0.85rem',
         marginTop: '3rem',
-        background: 'rgba(9, 13, 22, 0.9)'
+        background: 'rgba(6, 18, 25, 0.95)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '0.5rem' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Zap size={14} color="#2A7FFF" /> WebRTC DataChannels
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.8rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
+            <PeerSmashIcon size={16} variant="monochrome" /> WebRTC DataChannels
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Lock size={14} color="#00E5FF" /> End-to-End P2P
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
+            <Lock size={15} color="#00C896" /> End-to-End P2P
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Shield size={14} color="#10B981" /> Zero Server Storage
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#FFFFFF', fontWeight: 600 }}>
+            <Shield size={15} color="#00C896" /> Zero Server Storage
           </span>
         </div>
-        <p style={{ margin: 0 }}>
-          PeerSmash — High-Performance Peer-to-Peer Browser File Sharing.
-
+        <p style={{ margin: 0, fontSize: '0.8rem', color: '#63788D' }}>
+          PeerSmash — Empowering peers to connect, collaborate and achieve more together.
         </p>
       </footer>
     </div>
