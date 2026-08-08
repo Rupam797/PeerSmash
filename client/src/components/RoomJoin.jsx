@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, LogIn, AlertCircle, Users, Radio, Activity, Shield } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
   const [inputCode, setInputCode] = useState('');
@@ -17,59 +17,56 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
 
   return (
     <div style={{
+      width: '100%',
       maxWidth: '680px',
-      margin: '2rem auto',
-      padding: '0 1rem',
+      margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center'
     }}>
-      {/* Main Single Centered Card matching User Screenshot */}
-      <div className="glass-card glow-border" style={{
+      {/* Main Stitch Container Card */}
+      <main style={{
         width: '100%',
+        backgroundColor: '#0B101C',
+        borderRadius: '1.25rem',
         padding: '2.5rem 2rem',
-        borderRadius: '24px',
+        boxShadow: '0 0 20px rgba(0, 229, 255, 0.05), inset 0 0 0 1px rgba(0, 229, 255, 0.1)',
+        border: '1px solid #1E293B',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        gap: '1.8rem',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+        alignItems: 'center'
       }}>
-        {/* Title Header */}
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{
-            fontSize: '2.5rem',
+        {/* Header Section */}
+        <header style={{ textAlign: 'center', marginBottom: '2.5rem', width: '100%' }}>
+          <h1 style={{
+            fontSize: '2.8rem',
             fontWeight: 800,
-            letterSpacing: '-0.02em',
-            marginBottom: '0.4rem',
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+            letterSpacing: '-0.025em',
+            color: '#FFFFFF',
+            marginBottom: '0.6rem'
           }}>
             P2P File Share
-          </h2>
-          <p style={{
-            fontSize: '1rem',
-            color: '#94A3B8',
-            fontWeight: 500
-          }}>
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: '#94A3B8', margin: 0 }}>
             Direct peer-to-peer file transfer
           </p>
-        </div>
+        </header>
 
         {/* Error Alert Box */}
         {error && (
           <div style={{
             width: '100%',
+            maxWidth: '28rem',
+            marginBottom: '1.5rem',
             padding: '0.9rem 1.2rem',
-            borderRadius: '14px',
+            borderRadius: '0.75rem',
             background: 'rgba(239, 68, 68, 0.12)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
             color: '#F87171',
             display: 'flex',
             alignItems: 'center',
             gap: '0.8rem',
-            fontSize: '0.9rem',
+            fontSize: '0.95rem',
             fontWeight: 600
           }}>
             <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -77,161 +74,207 @@ export function RoomJoin({ onCreateRoom, onJoinRoom, error, stats }) {
           </div>
         )}
 
-        {/* Action 1: Create New Room Button */}
-        <button
-          onClick={onCreateRoom}
-          className="btn-primary"
-          style={{
-            width: '100%',
-            padding: '1.1rem',
-            fontSize: '1.1rem',
-            fontWeight: 700,
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #2A7FFF 0%, #00E5FF 100%)',
-            boxShadow: '0 0 25px rgba(42, 127, 255, 0.35)'
-          }}
-        >
-          <PlusCircle size={22} />
-          <span>Create New Room</span>
-        </button>
-
-        {/* OR Divider */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          width: '100%',
-          color: '#64748B',
-          fontSize: '0.85rem',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '2px'
-        }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
-          <span>OR</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
-        </div>
-
-        {/* Action 2: Join Form */}
-        <form onSubmit={handleJoinSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <input
-            type="text"
-            maxLength={6}
-            value={inputCode}
-            onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-            placeholder="ROOM ID E.G. SMASH8"
-            className="room-code-input"
-            style={{
-              width: '100%',
-              padding: '1.1rem',
-              fontSize: '1.25rem',
-              textAlign: 'center',
-              background: 'rgba(15, 23, 42, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '14px',
-              color: '#FFFFFF',
-              outline: 'none',
-              transition: 'all 0.2s ease',
-              letterSpacing: '4px'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#2A7FFF'}
-            onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.12)'}
-          />
-
+        {/* Action Section */}
+        <section style={{ width: '100%', maxWidth: '28rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Create Room Button */}
           <button
-            type="submit"
-            disabled={inputCode.trim().length < 4}
-            className="btn-secondary"
+            onClick={onCreateRoom}
             style={{
               width: '100%',
-              padding: '1rem',
-              fontSize: '1rem',
+              background: 'linear-gradient(to right, #2A7FFF, #00E5FF)',
+              color: '#FFFFFF',
               fontWeight: 700,
-              borderRadius: '14px',
-              background: inputCode.trim().length >= 4 ? 'rgba(0, 229, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-              borderColor: inputCode.trim().length >= 4 ? 'rgba(0, 229, 255, 0.4)' : 'rgba(255, 255, 255, 0.1)'
+              padding: '1rem 1.5rem',
+              borderRadius: '0.75rem',
+              fontSize: '1.125rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(42, 127, 255, 0.3)',
+              transition: 'transform 0.2s ease, filter 0.2s ease'
             }}
+            onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
+            onMouseOut={(e) => e.currentTarget.style.filter = 'brightness(1)'}
           >
-            <LogIn size={20} color={inputCode.trim().length >= 4 ? '#00E5FF' : '#94A3B8'} />
-            <span>Join Room</span>
+            Create New Room
           </button>
-        </form>
 
-        {/* Getting Started Instructions Box (Exact layout from Screenshot) */}
-        <div style={{
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', width: '100%', padding: '0.5rem 0' }}>
+            <div style={{ height: '1px', backgroundColor: '#1E293B', flexGrow: 1 }} />
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B' }}>
+              OR
+            </span>
+            <div style={{ height: '1px', backgroundColor: '#1E293B', flexGrow: 1 }} />
+          </div>
+
+          {/* Join Room Form */}
+          <form onSubmit={handleJoinSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <input
+              type="text"
+              maxLength={6}
+              value={inputCode}
+              onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+              placeholder="ROOM ID E.G. SMASH8"
+              className="room-code-input"
+              style={{
+                width: '100%',
+                backgroundColor: '#0F172A',
+                border: '1px solid #1E293B',
+                borderRadius: '0.75rem',
+                padding: '1rem 1.5rem',
+                textAlign: 'center',
+                fontSize: '1.125rem',
+                color: '#FFFFFF',
+                outline: 'none',
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#00E5FF'}
+              onBlur={(e) => e.target.style.borderColor = '#1E293B'}
+            />
+
+            <button
+              type="submit"
+              disabled={inputCode.trim().length < 4}
+              style={{
+                width: '100%',
+                backgroundColor: 'transparent',
+                border: '2px solid #1E293B',
+                color: inputCode.trim().length >= 4 ? '#FFFFFF' : '#CBD5E1',
+                fontWeight: 600,
+                padding: '0.875rem 1.5rem',
+                borderRadius: '0.75rem',
+                fontSize: '1.125rem',
+                cursor: inputCode.trim().length >= 4 ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                if (inputCode.trim().length >= 4) {
+                  e.currentTarget.style.borderColor = 'rgba(0, 229, 255, 0.5)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 229, 255, 0.05)';
+                }
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.borderColor = '#1E293B';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              Join Room
+            </button>
+          </form>
+        </section>
+
+        {/* Getting Started Section */}
+        <section style={{
           width: '100%',
-          padding: '1.6rem',
-          borderRadius: '16px',
-          background: 'rgba(15, 23, 42, 0.65)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          border: '1px solid #1E293B',
+          borderRadius: '0.75rem',
+          padding: '1.5rem 2rem',
+          marginTop: '3rem',
           textAlign: 'left'
         }}>
-          <h4 style={{
+          <h2 style={{
             color: '#00E5FF',
-            fontSize: '0.85rem',
             fontWeight: 800,
-            letterSpacing: '1.5px',
+            fontSize: '0.875rem',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            margin: 0
+            marginBottom: '1.25rem',
+            marginTop: 0
           }}>
-            GETTING STARTED
-          </h4>
+            Getting Started
+          </h2>
 
           <ul style={{
-            listStyleType: 'disc',
-            paddingLeft: '1.2rem',
+            listStyleType: 'none',
+            padding: 0,
             margin: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.8rem',
-            color: '#94A3B8',
-            fontSize: '0.9rem',
-            lineHeight: 1.55
+            gap: '1rem',
+            color: '#CBD5E1',
+            fontSize: '0.95rem',
+            lineHeight: 1.6
           }}>
-            <li>
-              <strong style={{ color: '#F8FAFC' }}>To share files:</strong> Click "Create New Room", then copy and share the Room ID or invite link with the other devices.
+            <li style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <span style={{ color: '#00E5FF', marginRight: '0.75rem', marginTop: '0.1rem', fontSize: '1.2rem', lineHeight: 1 }}>•</span>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: '#FFFFFF', fontWeight: 600 }}>To share files:</strong> Click 'Create New Room', then copy and share the Room ID or invite link with the other devices.
+              </p>
             </li>
-            <li>
-              <strong style={{ color: '#F8FAFC' }}>To receive files:</strong> Paste the 6-character Room ID sent to you into the box above and click "Join Room".
+            <li style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <span style={{ color: '#00E5FF', marginRight: '0.75rem', marginTop: '0.1rem', fontSize: '1.2rem', lineHeight: 1 }}>•</span>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: '#FFFFFF', fontWeight: 600 }}>To receive files:</strong> Paste the 6-character Room ID sent to you into the box above and click 'Join Room'.
+              </p>
             </li>
-            <li>
-              <strong style={{ color: '#F8FAFC' }}>Verify connection:</strong> The security code inside the room confirms that your devices connected to each other safely.
+            <li style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <span style={{ color: '#00E5FF', marginRight: '0.75rem', marginTop: '0.1rem', fontSize: '1.2rem', lineHeight: 1 }}>•</span>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: '#FFFFFF', fontWeight: 600 }}>Verify connection:</strong> The security code inside the room confirms that your devices connected to each other safely.
+              </p>
             </li>
-            <li>
-              <strong style={{ color: '#F8FAFC' }}>Room Limits:</strong> Direct P2P stream between 2 devices per room with zero server file storage.
+            <li style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <span style={{ color: '#00E5FF', marginRight: '0.75rem', marginTop: '0.1rem', fontSize: '1.2rem', lineHeight: 1 }}>•</span>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: '#FFFFFF', fontWeight: 600 }}>Room Limits:</strong> Direct P2P stream between 2 devices per room with zero server file storage.
+              </p>
             </li>
           </ul>
-        </div>
+        </section>
+      </main>
 
-        {/* Live Visitor Stats Footer */}
+      {/* Footer Stats Pills */}
+      <footer style={{
+        marginTop: '2rem',
+        width: '100%',
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '1rem',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: '#94A3B8'
+      }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.8rem',
-          paddingTop: '0.5rem',
-          color: '#64748B',
-          fontSize: '0.85rem',
-          fontWeight: 600
+          gap: '0.5rem',
+          backgroundColor: '#0B101C',
+          border: '1px solid #1E293B',
+          padding: '0.375rem 0.875rem',
+          borderRadius: '9999px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10B981' }}>
-            <div className="pulse-dot green" style={{ width: '6px', height: '6px' }}></div>
-            <Users size={14} />
-            <span>{connectedPeers} Users Live</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#00E5FF' }}>
-            <Radio size={14} />
-            <span>{activeRooms} Active Rooms</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#2A7FFF' }}>
-            <Activity size={14} />
-            <span>{totalConnections} Sessions</span>
-          </div>
+          <span className="pulse-dot green" style={{ width: '8px', height: '8px', backgroundColor: '#10B981', borderRadius: '50%' }}></span>
+          <span>{connectedPeers} Users Live</span>
         </div>
-      </div>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          backgroundColor: '#0B101C',
+          border: '1px solid #1E293B',
+          padding: '0.375rem 0.875rem',
+          borderRadius: '9999px'
+        }}>
+          <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: '#2A7FFF', borderRadius: '50%', animationDelay: '0.5s' }}></span>
+          <span>{activeRooms} Active Rooms</span>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          backgroundColor: '#0B101C',
+          border: '1px solid #1E293B',
+          padding: '0.375rem 0.875rem',
+          borderRadius: '9999px'
+        }}>
+          <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: '#00E5FF', borderRadius: '50%', animationDelay: '1s' }}></span>
+          <span>{totalConnections} Peer Sessions</span>
+        </div>
+      </footer>
     </div>
   );
 }
