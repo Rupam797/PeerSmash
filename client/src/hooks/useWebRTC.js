@@ -2,11 +2,17 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { sendFileOverDataChannel, FileReceiver } from '../utils/fileChunker';
 
+// High-reliability, low-latency multi-region STUN servers
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ]
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ],
+  iceCandidatePoolSize: 10
 };
 
 export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
@@ -14,13 +20,14 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
   const dataChannelRef = useRef(null);
   const fileReceiverRef = useRef(null);
   const isCancelledRef = useRef(false);
+  const iceCandidatesQueueRef = useRef([]);
 
   const [connectionStatus, setConnectionStatus] = useState('IDLE'); // IDLE, CONNECTING, CONNECTED, FAILED, DISCONNECTED
   const [dataChannelStatus, setDataChannelStatus] = useState('closed'); // open, closing, closed
   const [natError, setNatError] = useState(false);
 
   // File Transfer States
-  const [queue, setQueue] = useState([]); // [{ id, file, status: 'pending'|'sending'|'completed'|'failed', progress: 0, speed: 0, eta: 0 }]
+  const [queue, setQueue] = useState([]);
   const [currentSendingFile, setCurrentSendingFile] = useState(null);
   const [receivingFile, setReceivingFile] = useState(null);
   const [completedFiles, setCompletedFiles] = useState([]);
@@ -35,7 +42,6 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
         setReceivingFile(null);
         setCompletedFiles((prev) => [completedFile, ...prev]);
 
-        // Auto trigger download
         try {
           const a = document.createElement('a');
           a.href = completedFile.url;
@@ -47,7 +53,6 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
           console.error('Auto download error:', e);
         }
 
-        // Trigger victory confetti
         confetti({
           particleCount: 80,
           spread: 70,
@@ -63,6 +68,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
 
   // Cleanup WebRTC connection
   const cleanup = useCallback(() => {
+    iceCandidatesQueueRef.current = [];
     if (dataChannelRef.current) {
       dataChannelRef.current.close();
       dataChannelRef.current = null;
@@ -124,6 +130,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
 
     setConnectionStatus('CONNECTING');
     setNatError(false);
+    iceCandidatesQueueRef.current = [];
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
     peerConnectionRef.current = pc;
@@ -140,10 +147,24 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
         setConnectionStatus('CONNECTED');
         setNatError(false);
       } else if (pc.iceConnectionState === 'failed') {
+        console.warn('[WebRTC] ICE failed. Attempting ICE restart...');
         setConnectionStatus('FAILED');
         setNatError(true);
       } else if (pc.iceConnectionState === 'disconnected') {
         setConnectionStatus('DISCONNECTED');
+      }
+    };
+
+    // Helper to process buffered ICE candidates once remote description is set
+    const processBufferedCandidates = async () => {
+      if (!pc.remoteDescription) return;
+      while (iceCandidatesQueueRef.current.length > 0) {
+        const candidate = iceCandidatesQueueRef.current.shift();
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error('[WebRTC] Error adding buffered candidate:', e);
+        }
       }
     };
 
@@ -173,6 +194,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
       try {
         console.log('[WebRTC] Handling offer...');
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        await processBufferedCandidates();
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('answer', { roomId, answer: pc.localDescription });
@@ -186,6 +208,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
       try {
         console.log('[WebRTC] Handling answer...');
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        await processBufferedCandidates();
       } catch (err) {
         console.error('[WebRTC] Handle Answer Error:', err);
       }
@@ -193,8 +216,12 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
 
     const handleIceCandidate = async ({ candidate }) => {
       try {
-        if (candidate && pc.remoteDescription) {
+        if (!candidate) return;
+        if (pc.remoteDescription && pc.remoteDescription.type) {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+          // Buffer candidate until remote description is ready
+          iceCandidatesQueueRef.current.push(candidate);
         }
       } catch (err) {
         console.error('[WebRTC] Add ICE Candidate Error:', err);
