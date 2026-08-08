@@ -73,8 +73,8 @@ export function ActiveRoomView({
     }}>
       {/* Top Wide Card: Room ID & Security Check */}
       <div className="mobile-card-padding" style={{
-        backgroundColor: '#121419',
-        border: '1px solid #22252E',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '16px',
         padding: '1.8rem 2rem'
       }}>
@@ -86,7 +86,7 @@ export function ActiveRoomView({
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: '#5A5E6B'
+              color: 'var(--text-dim)'
             }}>
               ROOM ID — SHARE THIS TO JOIN
             </span>
@@ -96,7 +96,7 @@ export function ActiveRoomView({
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '2.2rem',
               fontWeight: 800,
-              color: '#50E3C2',
+              color: 'var(--brand-mint)',
               letterSpacing: '3px',
               margin: '0.2rem 0'
             }}>
@@ -109,9 +109,9 @@ export function ActiveRoomView({
                 onClick={copyRoomId}
                 style={{
                   width: '100%',
-                  backgroundColor: '#16181D',
-                  border: '1px solid #282A30',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--bg-input)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-main)',
                   fontWeight: 600,
                   fontSize: '0.95rem',
                   padding: '0.8rem 1.2rem',
@@ -123,10 +123,10 @@ export function ActiveRoomView({
                   gap: '0.5rem',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.borderColor = '#404450'}
-                onMouseOut={(e) => e.currentTarget.style.borderColor = '#282A30'}
+                onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--brand-mint)'}
+                onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
               >
-                {copiedId ? <Check size={16} color="#50E3C2" /> : <Copy size={16} />}
+                {copiedId ? <Check size={16} color="var(--brand-mint)" /> : <Copy size={16} />}
                 <span>{copiedId ? 'Copied ID!' : 'Copy ID'}</span>
               </button>
 
@@ -134,9 +134,9 @@ export function ActiveRoomView({
                 onClick={copyInviteLink}
                 style={{
                   width: '100%',
-                  backgroundColor: '#16181D',
-                  border: '1px solid #282A30',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--bg-input)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-main)',
                   fontWeight: 600,
                   fontSize: '0.95rem',
                   padding: '0.8rem 1.2rem',
@@ -148,10 +148,10 @@ export function ActiveRoomView({
                   gap: '0.5rem',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.borderColor = '#404450'}
-                onMouseOut={(e) => e.currentTarget.style.borderColor = '#282A30'}
+                onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--brand-mint)'}
+                onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
               >
-                {copiedLink ? <Check size={16} color="#50E3C2" /> : <Copy size={16} />}
+                {copiedLink ? <Check size={16} color="var(--brand-mint)" /> : <Copy size={16} />}
                 <span>{copiedLink ? 'Copied Link!' : 'Copy invite link'}</span>
               </button>
 
@@ -160,9 +160,9 @@ export function ActiveRoomView({
                   onClick={onOpenQR}
                   style={{
                     width: '100%',
-                    backgroundColor: '#16181D',
-                    border: '1px solid #282A30',
-                    color: '#50E3C2',
+                    backgroundColor: 'var(--bg-input)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--brand-mint)',
                     fontWeight: 600,
                     fontSize: '0.95rem',
                     padding: '0.8rem 1.2rem',
@@ -174,23 +174,23 @@ export function ActiveRoomView({
                     gap: '0.5rem',
                     transition: 'all 0.2s ease'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = '#50E3C2'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = '#282A30'}
+                  onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--brand-mint)'}
+                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
                 >
-                  <QrCode size={16} color="#50E3C2" />
+                  <QrCode size={16} color="var(--brand-mint)" />
                   <span>Mobile QR Code</span>
                 </button>
               )}
             </div>
 
-            <p style={{ fontSize: '0.82rem', color: '#5A5E6B', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
               Others paste this ID (or the invite link) on the home screen — not the security check below.
             </p>
 
             <div style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.88rem',
-              color: '#8A8F9C',
+              color: 'var(--text-muted)',
               marginTop: '0.4rem'
             }}>
               {hasPeer || isConnected ? '2 / 8 peers in room' : '1 / 8 peers in room'}
@@ -204,28 +204,28 @@ export function ActiveRoomView({
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: '#5A5E6B'
+              color: 'var(--text-dim)'
             }}>
               SECURITY CHECK (OPTIONAL)
             </span>
 
             <div style={{
-              backgroundColor: '#16181D',
-              border: '1px solid #282A30',
+              backgroundColor: 'var(--bg-input)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               padding: '0.9rem 1.2rem',
               textAlign: 'center',
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '1.05rem',
               fontWeight: 700,
-              color: '#A0A5B5',
+              color: 'var(--text-muted)',
               letterSpacing: '2px'
             }}>
               {securityCode}
             </div>
 
-            <p style={{ fontSize: '0.82rem', color: '#5A5E6B', margin: 0, lineHeight: 1.4 }}>
-              After joining, confirm this code matches on every device. <strong style={{ color: '#8A8F9C' }}>Do not use this to join a room.</strong>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
+              After joining, confirm this code matches on every device. <strong style={{ color: 'var(--text-muted)' }}>Do not use this to join a room.</strong>
             </p>
           </div>
         </div>
@@ -235,8 +235,8 @@ export function ActiveRoomView({
       <div className="responsive-grid-2">
         {/* Left Card: Connection Status / Peer Waiting */}
         <div style={{
-          backgroundColor: '#121419',
-          border: '1px solid #22252E',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '16px',
           padding: '2.5rem 1.5rem',
           display: 'flex',
@@ -249,10 +249,10 @@ export function ActiveRoomView({
           {isConnected ? (
             <div>
               <div className="pulse-dot green" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.4rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
                 P2P Link Active
               </h3>
-              <p style={{ fontSize: '0.85rem', color: '#8A8F9C', margin: 0 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
                 WebRTC DataChannel encrypted & connected
               </p>
             </div>
@@ -262,17 +262,17 @@ export function ActiveRoomView({
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', marginBottom: '0.4rem' }}>
                 Establishing P2P Link...
               </h3>
-              <p style={{ fontSize: '0.82rem', color: '#9CA3AF', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
                 Peer connected! Exchanging WebRTC encryption keys
               </p>
             </div>
           ) : (
             <div>
               <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#A0A5B5', marginBottom: '0.4rem' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
                 Waiting for peers to join...
               </h3>
-              <p style={{ fontSize: '0.82rem', color: '#5A5E6B', margin: 0, lineHeight: 1.4 }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
                 Share the room ID with someone to start transferring files
               </p>
             </div>
@@ -281,8 +281,8 @@ export function ActiveRoomView({
 
         {/* Right Card: Send File / Transfer Area */}
         <div style={{
-          backgroundColor: '#121419',
-          border: '1px solid #22252E',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '16px',
           padding: '1.8rem 1.5rem',
           display: 'flex',
@@ -291,10 +291,10 @@ export function ActiveRoomView({
           minHeight: '220px'
         }}>
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.2rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
               Send File
             </h3>
-            <span style={{ fontSize: '0.82rem', color: '#5A5E6B' }}>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
               Max file size: 1 GB
             </span>
           </div>
@@ -390,7 +390,7 @@ export function ActiveRoomView({
 
       {/* Bottom Centered Logo Mark */}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
-        <PeerSmashAppIcon width={36} />
+        <PeerSmashAppIcon width={100} />
       </div>
     </div>
   );

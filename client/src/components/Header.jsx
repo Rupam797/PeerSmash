@@ -42,12 +42,12 @@ export function Header({
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: '0.15rem',
+            gap: 0,
             cursor: 'pointer',
             userSelect: 'none'
           }}
         >
-          <PeerSmashAppIcon width={56} />
+          <PeerSmashAppIcon width={56} style={{ marginRight: '-14px' }} />
           <span style={{
             fontFamily: "'Space Grotesk', -apple-system, sans-serif",
             fontSize: '1.12rem',
