@@ -15,15 +15,15 @@ const ICE_SERVERS = {
   iceCandidatePoolSize: 10
 };
 
-export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
-  const peerConnectionRef = useRef(null);
-  const dataChannelRef = useRef(null);
+export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) {
+  const peerConnectionsRef = useRef(new Map()); // targetId -> RTCPeerConnection
+  const dataChannelsRef = useRef(new Map()); // targetId -> RTCDataChannel
+  const iceCandidatesQueueRef = useRef(new Map()); // targetId -> candidate[]
   const fileReceiverRef = useRef(null);
   const isCancelledRef = useRef(false);
-  const iceCandidatesQueueRef = useRef([]);
 
   const [connectionStatus, setConnectionStatus] = useState('IDLE'); // IDLE, CONNECTING, CONNECTED, FAILED, DISCONNECTED
-  const [dataChannelStatus, setDataChannelStatus] = useState('closed'); // open, closing, closed
+  const [openChannelCount, setOpenChannelCount] = useState(0);
   const [natError, setNatError] = useState(false);
 
   // File Transfer States
@@ -31,6 +31,8 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
   const [currentSendingFile, setCurrentSendingFile] = useState(null);
   const [receivingFile, setReceivingFile] = useState(null);
   const [completedFiles, setCompletedFiles] = useState([]);
+
+  const dataChannelStatus = openChannelCount > 0 ? 'open' : 'closed';
 
   // Initialize File Receiver
   useEffect(() => {
@@ -66,42 +68,70 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
     );
   }, []);
 
-  // Cleanup WebRTC connection
-  const cleanup = useCallback(() => {
-    iceCandidatesQueueRef.current = [];
-    if (dataChannelRef.current) {
-      dataChannelRef.current.close();
-      dataChannelRef.current = null;
+  const updateChannelState = useCallback(() => {
+    let count = 0;
+    dataChannelsRef.current.forEach((dc) => {
+      if (dc && dc.readyState === 'open') count++;
+    });
+    setOpenChannelCount(count);
+    if (count > 0) {
+      setConnectionStatus('CONNECTED');
+      setNatError(false);
+    } else if (peerConnectionsRef.current.size > 0) {
+      setConnectionStatus('CONNECTING');
+    } else {
+      setConnectionStatus('IDLE');
     }
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-      peerConnectionRef.current = null;
-    }
+  }, []);
+
+  // Cleanup all WebRTC connections
+  const cleanupAll = useCallback(() => {
+    dataChannelsRef.current.forEach((dc) => dc?.close());
+    dataChannelsRef.current.clear();
+
+    peerConnectionsRef.current.forEach((pc) => pc?.close());
+    peerConnectionsRef.current.clear();
+
+    iceCandidatesQueueRef.current.clear();
+
+    setOpenChannelCount(0);
     setConnectionStatus('DISCONNECTED');
-    setDataChannelStatus('closed');
     setReceivingFile(null);
     setCurrentSendingFile(null);
   }, []);
 
-  // Setup DataChannel listeners
-  const bindDataChannelEvents = useCallback((dc) => {
-    dataChannelRef.current = dc;
+  // Remove single peer connection
+  const removePeer = useCallback((targetId) => {
+    console.log('[WebRTC Mesh] Removing peer:', targetId);
+    if (dataChannelsRef.current.has(targetId)) {
+      dataChannelsRef.current.get(targetId)?.close();
+      dataChannelsRef.current.delete(targetId);
+    }
+    if (peerConnectionsRef.current.has(targetId)) {
+      peerConnectionsRef.current.get(targetId)?.close();
+      peerConnectionsRef.current.delete(targetId);
+    }
+    iceCandidatesQueueRef.current.delete(targetId);
+    updateChannelState();
+  }, [updateChannelState]);
+
+  // Bind DataChannel events per peer
+  const bindDataChannelEvents = useCallback((dc, targetId) => {
+    dataChannelsRef.current.set(targetId, dc);
 
     dc.onopen = () => {
-      console.log('[WebRTC] DataChannel OPEN!');
-      setDataChannelStatus('open');
-      setConnectionStatus('CONNECTED');
-      setNatError(false);
+      console.log(`[WebRTC Mesh] DataChannel OPEN with ${targetId}!`);
+      updateChannelState();
     };
 
     dc.onclose = () => {
-      console.log('[WebRTC] DataChannel CLOSED');
-      setDataChannelStatus('closed');
-      setConnectionStatus('DISCONNECTED');
+      console.log(`[WebRTC Mesh] DataChannel CLOSED with ${targetId}`);
+      dataChannelsRef.current.delete(targetId);
+      updateChannelState();
     };
 
     dc.onerror = (err) => {
-      console.error('[WebRTC] DataChannel ERROR:', err);
+      console.error(`[WebRTC Mesh] DataChannel ERROR (${targetId}):`, err);
     };
 
     dc.onmessage = (event) => {
@@ -122,115 +152,126 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
         fileReceiverRef.current?.handleChunk(event.data);
       }
     };
-  }, []);
+  }, [updateChannelState]);
 
-  // Establish WebRTC Connection
-  useEffect(() => {
-    if (!socket || !roomId || !hasPeer) return;
+  // Create & Manage RTCPeerConnection for a specific target peer
+  const createPeerConnection = useCallback((targetId, isOfferInitiator) => {
+    if (peerConnectionsRef.current.has(targetId)) {
+      return peerConnectionsRef.current.get(targetId);
+    }
 
-    setConnectionStatus('CONNECTING');
-    setNatError(false);
-    iceCandidatesQueueRef.current = [];
-
+    console.log(`[WebRTC Mesh] Creating RTCPeerConnection for ${targetId} (Initiator: ${isOfferInitiator})`);
     const pc = new RTCPeerConnection(ICE_SERVERS);
-    peerConnectionRef.current = pc;
+    peerConnectionsRef.current.set(targetId, pc);
+    iceCandidatesQueueRef.current.set(targetId, []);
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socket.emit('ice-candidate', { roomId, candidate: event.candidate });
+        socket.emit('ice-candidate', { roomId, targetId, candidate: event.candidate });
       }
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log('[WebRTC] ICE Connection State:', pc.iceConnectionState);
+      console.log(`[WebRTC Mesh] ICE State (${targetId}):`, pc.iceConnectionState);
       if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-        setConnectionStatus('CONNECTED');
-        setNatError(false);
+        updateChannelState();
       } else if (pc.iceConnectionState === 'failed') {
-        console.warn('[WebRTC] ICE failed. Attempting ICE restart...');
-        setConnectionStatus('FAILED');
+        console.warn(`[WebRTC Mesh] ICE failed with ${targetId}`);
         setNatError(true);
-      } else if (pc.iceConnectionState === 'disconnected') {
-        setConnectionStatus('DISCONNECTED');
+      } else if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'closed') {
+        removePeer(targetId);
       }
     };
 
-    // Helper to process buffered ICE candidates once remote description is set
-    const processBufferedCandidates = async () => {
-      if (!pc.remoteDescription) return;
-      while (iceCandidatesQueueRef.current.length > 0) {
-        const candidate = iceCandidatesQueueRef.current.shift();
-        try {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) {
-          console.error('[WebRTC] Error adding buffered candidate:', e);
-        }
-      }
-    };
-
-    // If initiator: create DataChannel and create Offer
-    if (isInitiator) {
-      console.log('[WebRTC] Initiator creating DataChannel...');
+    if (isOfferInitiator) {
       const dc = pc.createDataChannel('file-transfer', { ordered: true });
-      bindDataChannelEvents(dc);
+      bindDataChannelEvents(dc, targetId);
 
       pc.createOffer()
         .then((offer) => pc.setLocalDescription(offer))
         .then(() => {
-          socket.emit('offer', { roomId, offer: pc.localDescription });
+          socket.emit('offer', { roomId, targetId, offer: pc.localDescription });
         })
-        .catch((err) => console.error('[WebRTC] Create Offer Error:', err));
+        .catch((err) => console.error(`[WebRTC Mesh] Create Offer Error (${targetId}):`, err));
     } else {
-      // If joiner: listen for incoming DataChannel
       pc.ondatachannel = (event) => {
-        console.log('[WebRTC] Joiner received DataChannel');
-        bindDataChannelEvents(event.channel);
+        console.log(`[WebRTC Mesh] Received DataChannel from ${targetId}`);
+        bindDataChannelEvents(event.channel, targetId);
       };
     }
 
-    // Socket signaling handlers
-    const handleOffer = async ({ offer }) => {
-      if (isInitiator) return;
+    return pc;
+  }, [socket, roomId, bindDataChannelEvents, removePeer, updateChannelState]);
+
+  // Process buffered ICE candidates once remote description is set
+  const processBufferedCandidates = async (targetId, pc) => {
+    const queue = iceCandidatesQueueRef.current.get(targetId) || [];
+    while (queue.length > 0) {
+      const candidate = queue.shift();
       try {
-        console.log('[WebRTC] Handling offer...');
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error(`[WebRTC Mesh] Error adding candidate for ${targetId}:`, e);
+      }
+    }
+  };
+
+  // Mesh signaling setup
+  useEffect(() => {
+    if (!socket || !roomId) return;
+
+    // Handle incoming offer from target peer
+    const handleOffer = async ({ offer, senderId }) => {
+      if (!senderId) return;
+      try {
+        console.log(`[WebRTC Mesh] Handling offer from ${senderId}...`);
+        const pc = createPeerConnection(senderId, false);
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        await processBufferedCandidates();
+        await processBufferedCandidates(senderId, pc);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit('answer', { roomId, answer: pc.localDescription });
+        socket.emit('answer', { roomId, targetId: senderId, answer: pc.localDescription });
       } catch (err) {
-        console.error('[WebRTC] Handle Offer Error:', err);
+        console.error(`[WebRTC Mesh] Handle Offer Error from ${senderId}:`, err);
       }
     };
 
-    const handleAnswer = async ({ answer }) => {
-      if (!isInitiator) return;
+    // Handle incoming answer from target peer
+    const handleAnswer = async ({ answer, senderId }) => {
+      if (!senderId) return;
       try {
-        console.log('[WebRTC] Handling answer...');
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-        await processBufferedCandidates();
-      } catch (err) {
-        console.error('[WebRTC] Handle Answer Error:', err);
-      }
-    };
-
-    const handleIceCandidate = async ({ candidate }) => {
-      try {
-        if (!candidate) return;
-        if (pc.remoteDescription && pc.remoteDescription.type) {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        } else {
-          // Buffer candidate until remote description is ready
-          iceCandidatesQueueRef.current.push(candidate);
+        console.log(`[WebRTC Mesh] Handling answer from ${senderId}...`);
+        const pc = peerConnectionsRef.current.get(senderId);
+        if (pc) {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+          await processBufferedCandidates(senderId, pc);
         }
       } catch (err) {
-        console.error('[WebRTC] Add ICE Candidate Error:', err);
+        console.error(`[WebRTC Mesh] Handle Answer Error from ${senderId}:`, err);
       }
     };
 
-    const handlePeerLeft = () => {
-      console.log('[WebRTC] Remote peer disconnected');
-      cleanup();
+    // Handle ICE candidate from target peer
+    const handleIceCandidate = async ({ candidate, senderId }) => {
+      if (!senderId || !candidate) return;
+      try {
+        const pc = peerConnectionsRef.current.get(senderId);
+        if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+          const queue = iceCandidatesQueueRef.current.get(senderId) || [];
+          queue.push(candidate);
+          iceCandidatesQueueRef.current.set(senderId, queue);
+        }
+      } catch (err) {
+        console.error(`[WebRTC Mesh] Add ICE Candidate Error from ${senderId}:`, err);
+      }
+    };
+
+    const handlePeerLeft = ({ peerId }) => {
+      if (peerId) {
+        removePeer(peerId);
+      }
     };
 
     socket.on('offer', handleOffer);
@@ -243,14 +284,28 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
       socket.off('answer', handleAnswer);
       socket.off('ice-candidate', handleIceCandidate);
       socket.off('peer-left', handlePeerLeft);
-      cleanup();
     };
-  }, [socket, roomId, isInitiator, hasPeer, bindDataChannelEvents, cleanup]);
+  }, [socket, roomId, createPeerConnection, removePeer]);
 
-  // Send Queue Processing Loop
+  // Initiate peer connections to all existing peers in room
   useEffect(() => {
+    if (!socket || !roomId || peers.length === 0) return;
+
+    peers.forEach((peerId) => {
+      if (!peerConnectionsRef.current.has(peerId)) {
+        createPeerConnection(peerId, true);
+      }
+    });
+  }, [socket, roomId, peers, createPeerConnection]);
+
+  // Send Queue Processing Loop (Broadcasting to all open channels in mesh)
+  useEffect(() => {
+    const activeChannels = Array.from(dataChannelsRef.current.values()).filter(
+      (dc) => dc && dc.readyState === 'open'
+    );
+
     const pendingItem = queue.find((item) => item.status === 'pending');
-    if (!pendingItem || currentSendingFile || dataChannelStatus !== 'open') return;
+    if (!pendingItem || currentSendingFile || activeChannels.length === 0) return;
 
     const sendCurrentFile = async () => {
       const fileId = pendingItem.id;
@@ -263,7 +318,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
         isCancelledRef.current = false;
         await sendFileOverDataChannel({
           file: pendingItem.file,
-          dataChannel: dataChannelRef.current,
+          dataChannel: activeChannels, // Array of open channels for broadcast
           fileId,
           onProgress: (progressData) => {
             setCurrentSendingFile((prev) => (prev ? { ...prev, ...progressData } : null));
@@ -282,7 +337,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
         );
         setCurrentSendingFile(null);
       } catch (err) {
-        console.error('[WebRTC] Send file error:', err);
+        console.error('[WebRTC Mesh] Send file error:', err);
         setQueue((prev) =>
           prev.map((item) => (item.id === fileId ? { ...item, status: 'failed' } : item))
         );
@@ -291,7 +346,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
     };
 
     sendCurrentFile();
-  }, [queue, currentSendingFile, dataChannelStatus]);
+  }, [queue, currentSendingFile, openChannelCount]);
 
   const addFilesToQueue = useCallback((files) => {
     const newItems = Array.from(files).map((file) => ({
@@ -323,6 +378,7 @@ export function useWebRTC({ socket, roomId, isInitiator, hasPeer }) {
   return {
     connectionStatus,
     dataChannelStatus,
+    openChannelCount,
     natError,
     queue,
     currentSendingFile,

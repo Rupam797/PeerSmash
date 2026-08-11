@@ -9,10 +9,12 @@ export function useSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [roomId, setRoomId] = useState(null);
   const [peerId, setPeerId] = useState(null);
+  const [peers, setPeers] = useState([]); // Array of connected remote peer IDs
   const [isInitiator, setIsInitiator] = useState(false);
-  const [hasPeer, setHasPeer] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ activeRooms: 0, connectedPeers: 0, totalConnections: 0 });
+
+  const hasPeer = peers.length > 0;
 
   // Initial HTTP Fetch & Background Polling Fallback for Production Resilience
   const fetchStats = useCallback(async () => {
@@ -65,26 +67,30 @@ export function useSocket() {
       setRoomId(roomId);
       setPeerId(peerId);
       setIsInitiator(isInitiator);
-      setHasPeer(false);
+      setPeers([]);
       setError(null);
     });
 
-    socket.on('room-joined', ({ roomId, peerId, isInitiator }) => {
+    socket.on('room-joined', ({ roomId, peerId, isInitiator, existingPeers }) => {
       setRoomId(roomId);
       setPeerId(peerId);
       setIsInitiator(isInitiator);
-      setHasPeer(true);
+      setPeers(existingPeers || []);
       setError(null);
     });
 
-    socket.on('peer-joined', () => {
-      console.log('[Socket] Peer joined room!');
-      setHasPeer(true);
+    socket.on('peer-joined', ({ peerId }) => {
+      console.log('[Socket] Peer joined room:', peerId);
+      if (peerId) {
+        setPeers((prev) => (prev.includes(peerId) ? prev : [...prev, peerId]));
+      }
     });
 
-    socket.on('peer-left', () => {
-      console.log('[Socket] Peer left room');
-      setHasPeer(false);
+    socket.on('peer-left', ({ peerId }) => {
+      console.log('[Socket] Peer left room:', peerId);
+      if (peerId) {
+        setPeers((prev) => prev.filter((p) => p !== peerId));
+      }
     });
 
     socket.on('join-error', ({ message }) => {
@@ -121,7 +127,7 @@ export function useSocket() {
       setRoomId(null);
       setPeerId(null);
       setIsInitiator(false);
-      setHasPeer(false);
+      setPeers([]);
       setError(null);
     }
   }, [roomId]);
@@ -131,6 +137,7 @@ export function useSocket() {
     isConnected,
     roomId,
     peerId,
+    peers,
     isInitiator,
     hasPeer,
     error,

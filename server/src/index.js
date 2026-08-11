@@ -111,15 +111,16 @@ io.on('connection', (socket) => {
     socket.join(formattedRoomId);
     console.log(`[Room] ${socket.id} joined room ${formattedRoomId}`);
 
-    // Notify joiner
+    // Notify joiner with room details & existing peers
     socket.emit('room-joined', {
       roomId: formattedRoomId,
       peerId: socket.id,
       isInitiator: false,
-      initiatorId: result.initiatorId
+      initiatorId: result.initiatorId,
+      existingPeers: result.existingPeers
     });
 
-    // Notify initiator that joiner has arrived
+    // Notify existing peers that a new peer has joined
     socket.to(formattedRoomId).emit('peer-joined', {
       peerId: socket.id
     });
@@ -127,29 +128,32 @@ io.on('connection', (socket) => {
   });
 
   // Relay WebRTC Offer
-  socket.on('offer', ({ roomId, offer }) => {
-    console.log(`[Signaling] Relaying Offer from ${socket.id} in room ${roomId}`);
-    socket.to(roomId).emit('offer', {
-      offer,
-      senderId: socket.id
-    });
+  socket.on('offer', ({ roomId, targetId, offer }) => {
+    console.log(`[Signaling] Relaying Offer from ${socket.id} to ${targetId || roomId}`);
+    if (targetId) {
+      io.to(targetId).emit('offer', { offer, senderId: socket.id });
+    } else {
+      socket.to(roomId).emit('offer', { offer, senderId: socket.id });
+    }
   });
 
   // Relay WebRTC Answer
-  socket.on('answer', ({ roomId, answer }) => {
-    console.log(`[Signaling] Relaying Answer from ${socket.id} in room ${roomId}`);
-    socket.to(roomId).emit('answer', {
-      answer,
-      senderId: socket.id
-    });
+  socket.on('answer', ({ roomId, targetId, answer }) => {
+    console.log(`[Signaling] Relaying Answer from ${socket.id} to ${targetId || roomId}`);
+    if (targetId) {
+      io.to(targetId).emit('answer', { answer, senderId: socket.id });
+    } else {
+      socket.to(roomId).emit('answer', { answer, senderId: socket.id });
+    }
   });
 
   // Relay ICE Candidate
-  socket.on('ice-candidate', ({ roomId, candidate }) => {
-    socket.to(roomId).emit('ice-candidate', {
-      candidate,
-      senderId: socket.id
-    });
+  socket.on('ice-candidate', ({ roomId, targetId, candidate }) => {
+    if (targetId) {
+      io.to(targetId).emit('ice-candidate', { candidate, senderId: socket.id });
+    } else {
+      socket.to(roomId).emit('ice-candidate', { candidate, senderId: socket.id });
+    }
   });
 
   // Manual Leave Room

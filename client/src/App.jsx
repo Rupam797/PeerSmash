@@ -15,6 +15,7 @@ export default function App() {
     isConnected,
     roomId,
     peerId,
+    peers,
     isInitiator,
     hasPeer,
     error,
@@ -27,6 +28,7 @@ export default function App() {
   const {
     connectionStatus,
     dataChannelStatus,
+    openChannelCount,
     natError,
     queue,
     currentSendingFile,
@@ -39,6 +41,7 @@ export default function App() {
     socket,
     roomId,
     isInitiator,
+    peers,
     hasPeer
   });
 
@@ -100,6 +103,8 @@ export default function App() {
               roomId={roomId}
               connectionStatus={connectionStatus}
               dataChannelStatus={dataChannelStatus}
+              openChannelCount={openChannelCount}
+              peers={peers}
               hasPeer={hasPeer}
               isInitiator={isInitiator}
               natError={natError}

@@ -14,13 +14,17 @@ export const LOW_WATER_MARK = 16 * 1024;  // 16 KB resume threshold
  */
 export async function sendFileOverDataChannel({
   file,
-  dataChannel,
+  dataChannel, // Can be a single RTCDataChannel or an array of RTCDataChannels
   fileId,
   onProgress,
   isCancelledRef
 }) {
-  if (!dataChannel || dataChannel.readyState !== 'open') {
-    throw new Error('DataChannel is not open');
+  const channels = (Array.isArray(dataChannel) ? dataChannel : [dataChannel]).filter(
+    (dc) => dc && dc.readyState === 'open'
+  );
+
+  if (channels.length === 0) {
+    throw new Error('No open DataChannels available');
   }
 
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
@@ -34,11 +38,13 @@ export async function sendFileOverDataChannel({
     chunkSize: CHUNK_SIZE
   };
 
-  // 1. Send Header Metadata
-  dataChannel.send(JSON.stringify(metadata));
+  const metadataStr = JSON.stringify(metadata);
 
-  // Configure backpressure low threshold
-  dataChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
+  // 1. Send Header Metadata to all open channels
+  channels.forEach((dc) => {
+    dc.send(metadataStr);
+    dc.bufferedAmountLowThreshold = LOW_WATER_MARK;
+  });
 
   let offset = 0;
   let chunkIndex = 0;
@@ -47,25 +53,18 @@ export async function sendFileOverDataChannel({
   let lastSpeedCheckBytes = 0;
   let currentSpeed = 0;
 
-  // Helper to pause if buffer is full (Backpressure handling)
+  // Helper to pause if any buffer is full (Backpressure handling)
   const waitForBufferDrain = () => {
     return new Promise((resolve) => {
-      if (dataChannel.bufferedAmount <= LOW_WATER_MARK) {
+      const getHighestBuffer = () => Math.max(...channels.map((dc) => dc.bufferedAmount || 0));
+      if (getHighestBuffer() <= LOW_WATER_MARK) {
         return resolve();
       }
 
-      const handleBufferedAmountLow = () => {
-        dataChannel.removeEventListener('bufferedamountlow', handleBufferedAmountLow);
-        resolve();
-      };
-
-      dataChannel.addEventListener('bufferedamountlow', handleBufferedAmountLow);
-
       // Safety fallback polling timeout
       const checkInterval = setInterval(() => {
-        if (dataChannel.bufferedAmount <= LOW_WATER_MARK) {
+        if (getHighestBuffer() <= LOW_WATER_MARK) {
           clearInterval(checkInterval);
-          dataChannel.removeEventListener('bufferedamountlow', handleBufferedAmountLow);
           resolve();
         }
       }, 50);
@@ -75,23 +74,28 @@ export async function sendFileOverDataChannel({
   // 2. Stream Chunks
   while (offset < file.size) {
     if (isCancelledRef?.current) {
-      dataChannel.send(JSON.stringify({ type: 'file-cancel', id: fileId }));
+      const cancelStr = JSON.stringify({ type: 'file-cancel', id: fileId });
+      channels.forEach((dc) => {
+        if (dc.readyState === 'open') dc.send(cancelStr);
+      });
       throw new Error('Transfer cancelled');
     }
 
-    if (dataChannel.readyState !== 'open') {
-      throw new Error('DataChannel closed unexpectedly during transfer');
+    const activeChannels = channels.filter((dc) => dc.readyState === 'open');
+    if (activeChannels.length === 0) {
+      throw new Error('All DataChannels closed unexpectedly during transfer');
     }
 
     // Check backpressure before reading and sending
-    if (dataChannel.bufferedAmount > HIGH_WATER_MARK) {
+    const maxBuffer = Math.max(...activeChannels.map((dc) => dc.bufferedAmount || 0));
+    if (maxBuffer > HIGH_WATER_MARK) {
       await waitForBufferDrain();
     }
 
     const slice = file.slice(offset, offset + CHUNK_SIZE);
     const arrayBuffer = await slice.arrayBuffer();
 
-    dataChannel.send(arrayBuffer);
+    activeChannels.forEach((dc) => dc.send(arrayBuffer));
 
     offset += arrayBuffer.byteLength;
     chunkIndex++;
@@ -124,7 +128,10 @@ export async function sendFileOverDataChannel({
   }
 
   // 3. Send Completion Signal
-  dataChannel.send(JSON.stringify({ type: 'file-complete', id: fileId }));
+  const completeStr = JSON.stringify({ type: 'file-complete', id: fileId });
+  channels.forEach((dc) => {
+    if (dc.readyState === 'open') dc.send(completeStr);
+  });
 }
 
 /**

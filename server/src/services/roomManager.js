@@ -66,6 +66,8 @@ class RoomManager {
       return { success: false, reason: 'FULL', message: 'This room is already full (max 8 peers).' };
     }
 
+    const existingPeers = Array.from(room.peers);
+
     this.leaveRoom(socketId);
 
     room.peers.add(socketId);
@@ -75,6 +77,7 @@ class RoomManager {
       success: true,
       roomId: formattedRoomId,
       initiatorId: room.initiatorId,
+      existingPeers,
       peerCount: room.peers.size
     };
   }

@@ -8,6 +8,8 @@ export function ActiveRoomView({
   roomId,
   connectionStatus,
   dataChannelStatus,
+  openChannelCount = 0,
+  peers = [],
   hasPeer,
   isInitiator,
   natError,
@@ -190,10 +192,11 @@ export function ActiveRoomView({
             <div style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.88rem',
-              color: 'var(--text-muted)',
+              color: 'var(--brand-mint)',
+              fontWeight: 600,
               marginTop: '0.4rem'
             }}>
-              {hasPeer || isConnected ? '2 / 8 peers in room' : '1 / 8 peers in room'}
+              {peers.length + 1} / 8 peers in room
             </div>
           </div>
 
@@ -250,10 +253,10 @@ export function ActiveRoomView({
             <div>
               <div className="pulse-dot green" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                P2P Link Active
+                P2P Mesh Link Active ({openChannelCount} {openChannelCount === 1 ? 'Peer' : 'Peers'})
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                WebRTC DataChannel encrypted & connected
+                WebRTC DataChannels encrypted & broadcast ready
               </p>
             </div>
           ) : hasPeer ? (
