@@ -10,7 +10,13 @@ const ICE_SERVERS = {
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
     { urls: 'stun:stun4.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' }
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    { urls: 'stun:stun.services.mozilla.com' },
+    ...(import.meta.env.VITE_TURN_SERVER_URL ? [{
+      urls: import.meta.env.VITE_TURN_SERVER_URL,
+      username: import.meta.env.VITE_TURN_USERNAME || '',
+      credential: import.meta.env.VITE_TURN_PASSWORD || ''
+    }] : [])
   ],
   iceCandidatePoolSize: 10
 };
@@ -117,6 +123,7 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
 
   // Bind DataChannel events per peer
   const bindDataChannelEvents = useCallback((dc, targetId) => {
+    dc.binaryType = 'arraybuffer';
     dataChannelsRef.current.set(targetId, dc);
 
     dc.onopen = () => {
@@ -134,7 +141,7 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
       console.error(`[WebRTC Mesh] DataChannel ERROR (${targetId}):`, err);
     };
 
-    dc.onmessage = (event) => {
+    dc.onmessage = async (event) => {
       if (typeof event.data === 'string') {
         try {
           const msg = JSON.parse(event.data);
@@ -150,6 +157,13 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
         }
       } else if (event.data instanceof ArrayBuffer) {
         fileReceiverRef.current?.handleChunk(event.data);
+      } else if (event.data instanceof Blob) {
+        try {
+          const buffer = await event.data.arrayBuffer();
+          fileReceiverRef.current?.handleChunk(buffer);
+        } catch (e) {
+          console.error('[WebRTC] Error converting Blob chunk to ArrayBuffer:', e);
+        }
       }
     };
   }, [updateChannelState]);
@@ -166,7 +180,7 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     iceCandidatesQueueRef.current.set(targetId, []);
 
     pc.onicecandidate = (event) => {
-      if (event.candidate) {
+      if (event.candidate && socket) {
         socket.emit('ice-candidate', { roomId, targetId, candidate: event.candidate });
       }
     };
@@ -190,7 +204,9 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
       pc.createOffer()
         .then((offer) => pc.setLocalDescription(offer))
         .then(() => {
-          socket.emit('offer', { roomId, targetId, offer: pc.localDescription });
+          if (socket) {
+            socket.emit('offer', { roomId, targetId, offer: pc.localDescription });
+          }
         })
         .catch((err) => console.error(`[WebRTC Mesh] Create Offer Error (${targetId}):`, err));
     } else {
@@ -225,7 +241,22 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
       if (!senderId) return;
       try {
         console.log(`[WebRTC Mesh] Handling offer from ${senderId}...`);
-        const pc = createPeerConnection(senderId, false);
+        let pc = peerConnectionsRef.current.get(senderId);
+
+        if (!pc) {
+          pc = createPeerConnection(senderId, false);
+        } else if (pc.signalingState !== 'stable') {
+          console.warn(`[WebRTC Mesh] Offer glare detected with ${senderId}, state: ${pc.signalingState}`);
+          const isPolite = socket.id ? socket.id > senderId : true;
+          if (isPolite) {
+            console.log(`[WebRTC Mesh] Polite peer rolling back offer for ${senderId}`);
+            await pc.setLocalDescription({ type: 'rollback' });
+          } else {
+            console.log(`[WebRTC Mesh] Impolite peer ignoring offer glare from ${senderId}`);
+            return;
+          }
+        }
+
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         await processBufferedCandidates(senderId, pc);
         const answer = await pc.createAnswer();
@@ -287,16 +318,24 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     };
   }, [socket, roomId, createPeerConnection, removePeer]);
 
-  // Initiate peer connections to all existing peers in room
+  // Initiate peer connections to all existing peers in room (Deterministic Initiator)
   useEffect(() => {
-    if (!socket || !roomId || peers.length === 0) return;
+    if (!socket || !socket.id || !roomId || peers.length === 0) return;
 
     peers.forEach((peerId) => {
       if (!peerConnectionsRef.current.has(peerId)) {
-        createPeerConnection(peerId, true);
+        // Deterministic offer initiator check:
+        // Only peer with smaller socket.id creates the SDP offer to prevent offer glare
+        const shouldInitiate = socket.id < peerId;
+        if (shouldInitiate) {
+          console.log(`[WebRTC Mesh] Deterministic initiator for peer ${peerId} (our id: ${socket.id})`);
+          createPeerConnection(peerId, true);
+        } else {
+          console.log(`[WebRTC Mesh] Waiting for peer ${peerId} to initiate offer (our id: ${socket.id})`);
+        }
       }
     });
-  }, [socket, roomId, peers, createPeerConnection]);
+  }, [socket, socket?.id, roomId, peers, createPeerConnection]);
 
   // Send Queue Processing Loop (Broadcasting to all open channels in mesh)
   useEffect(() => {
