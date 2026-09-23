@@ -38,6 +38,13 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
   const [receivingFile, setReceivingFile] = useState(null);
   const [completedFiles, setCompletedFiles] = useState([]);
 
+  // Shared Text & Notes States
+  const [sharedTexts, setSharedTexts] = useState([]);
+  const sharedTextsRef = useRef([]);
+  useEffect(() => {
+    sharedTextsRef.current = sharedTexts;
+  }, [sharedTexts]);
+
   const dataChannelStatus = openChannelCount > 0 ? 'open' : 'closed';
 
   // Initialize File Receiver
@@ -104,6 +111,7 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     setConnectionStatus('DISCONNECTED');
     setReceivingFile(null);
     setCurrentSendingFile(null);
+    setSharedTexts([]);
   }, []);
 
   // Remove single peer connection
@@ -129,6 +137,17 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     dc.onopen = () => {
       console.log(`[WebRTC Mesh] DataChannel OPEN with ${targetId}!`);
       updateChannelState();
+      // Auto-sync existing shared text notes to newly connected peer
+      if (sharedTextsRef.current.length > 0) {
+        try {
+          dc.send(JSON.stringify({
+            type: 'text-history-sync',
+            payload: sharedTextsRef.current
+          }));
+        } catch (err) {
+          console.error('[WebRTC] Error syncing shared texts:', err);
+        }
+      }
     };
 
     dc.onclose = () => {
@@ -151,6 +170,28 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
             fileReceiverRef.current?.handleComplete();
           } else if (msg.type === 'file-cancel') {
             setReceivingFile(null);
+          } else if (msg.type === 'text-message') {
+            const item = msg.payload;
+            if (item && item.id) {
+              setSharedTexts((prev) => {
+                if (prev.some((t) => t.id === item.id)) return prev;
+                return [item, ...prev];
+              });
+            }
+          } else if (msg.type === 'text-history-sync') {
+            const items = msg.payload;
+            if (Array.isArray(items)) {
+              setSharedTexts((prev) => {
+                const existingIds = new Set(prev.map((t) => t.id));
+                const newItems = items.filter((t) => !existingIds.has(t.id));
+                return [...newItems, ...prev];
+              });
+            }
+          } else if (msg.type === 'text-delete') {
+            const { id } = msg.payload || {};
+            if (id) {
+              setSharedTexts((prev) => prev.filter((t) => t.id !== id));
+            }
           }
         } catch (e) {
           console.error('[WebRTC] Error parsing JSON message:', e);
@@ -305,16 +346,45 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
       }
     };
 
+    const handleSocketTextMessage = (message) => {
+      if (!message || message.senderId === socket.id) return;
+      setSharedTexts((prev) => {
+        if (prev.some((t) => t.id === message.id)) return prev;
+        return [message, ...prev];
+      });
+    };
+
+    const handleSocketTextSync = (texts) => {
+      if (!Array.isArray(texts)) return;
+      setSharedTexts((prev) => {
+        const existingIds = new Set(prev.map((t) => t.id));
+        const newItems = texts.filter((t) => !existingIds.has(t.id));
+        return [...newItems, ...prev];
+      });
+    };
+
+    const handleSocketTextDelete = ({ id }) => {
+      if (id) {
+        setSharedTexts((prev) => prev.filter((item) => item.id !== id));
+      }
+    };
+
     socket.on('offer', handleOffer);
     socket.on('answer', handleAnswer);
     socket.on('ice-candidate', handleIceCandidate);
     socket.on('peer-left', handlePeerLeft);
+    socket.on('room-text-message', handleSocketTextMessage);
+    socket.on('room-text-sync', handleSocketTextSync);
+    socket.on('room-text-delete', handleSocketTextDelete);
 
     return () => {
       socket.off('offer', handleOffer);
       socket.off('answer', handleAnswer);
       socket.off('ice-candidate', handleIceCandidate);
       socket.off('peer-left', handlePeerLeft);
+      socket.off('room-text-message', handleSocketTextMessage);
+      socket.off('room-text-sync', handleSocketTextSync);
+      socket.off('room-text-delete', handleSocketTextDelete);
     };
   }, [socket, roomId, createPeerConnection, removePeer]);
 
@@ -414,6 +484,65 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     setQueue([]);
   }, []);
 
+  // Send Text Message to peers
+  const sendTextMessage = useCallback((text) => {
+    if (!text || !text.trim()) return null;
+    const newItem = {
+      id: `text-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      text: text.trim(),
+      senderId: socket?.id || 'me',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setSharedTexts((prev) => [newItem, ...prev]);
+
+    const messagePayload = JSON.stringify({
+      type: 'text-message',
+      payload: newItem
+    });
+
+    // 1. Send over all open WebRTC DataChannels
+    dataChannelsRef.current.forEach((dc) => {
+      if (dc && dc.readyState === 'open') {
+        try {
+          dc.send(messagePayload);
+        } catch (err) {
+          console.error('[WebRTC] Send text over dc error:', err);
+        }
+      }
+    });
+
+    // 2. Also emit over socket for guaranteed instant delivery
+    if (socket && roomId) {
+      socket.emit('room-text-message', { roomId, message: newItem });
+    }
+
+    return newItem;
+  }, [socket, roomId]);
+
+  // Delete a specific shared text note
+  const deleteTextMessage = useCallback((id) => {
+    setSharedTexts((prev) => prev.filter((item) => item.id !== id));
+    const messagePayload = JSON.stringify({
+      type: 'text-delete',
+      payload: { id }
+    });
+    dataChannelsRef.current.forEach((dc) => {
+      if (dc && dc.readyState === 'open') {
+        try {
+          dc.send(messagePayload);
+        } catch (e) {}
+      }
+    });
+    if (socket && roomId) {
+      socket.emit('room-text-delete', { roomId, id });
+    }
+  }, [socket, roomId]);
+
+  const clearAllTexts = useCallback(() => {
+    setSharedTexts([]);
+  }, []);
+
   return {
     connectionStatus,
     dataChannelStatus,
@@ -425,6 +554,10 @@ export function useWebRTC({ socket, roomId, isInitiator, peers = [], hasPeer }) 
     completedFiles,
     addFilesToQueue,
     cancelFile,
-    clearQueue
+    clearQueue,
+    sharedTexts,
+    sendTextMessage,
+    deleteTextMessage,
+    clearAllTexts
   };
 }

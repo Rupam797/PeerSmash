@@ -156,6 +156,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Relay Shared Text / Clipboard Messages (Instant fallback / sync)
+  socket.on('room-text-message', ({ roomId, message }) => {
+    socket.to(roomId).emit('room-text-message', message);
+  });
+
+  socket.on('room-text-sync', ({ roomId, targetId, texts }) => {
+    if (targetId) {
+      io.to(targetId).emit('room-text-sync', texts);
+    } else {
+      socket.to(roomId).emit('room-text-sync', texts);
+    }
+  });
+
+  socket.on('room-text-delete', ({ roomId, id }) => {
+    socket.to(roomId).emit('room-text-delete', { id });
+  });
+
   // Manual Leave Room
   socket.on('leave-room', () => {
     handleDisconnect(socket);

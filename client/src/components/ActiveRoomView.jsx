@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Copy, Check, ShieldAlert, FilePlus, UploadCloud, Download, Trash2, X, CheckCircle, Clock, QrCode } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Copy, Check, ShieldAlert, FilePlus, UploadCloud, Download, Trash2, X, CheckCircle, Clock, QrCode, FileText } from 'lucide-react';
 import { PeerSmashAppIcon } from './PeerSmashIcon';
 import { ProgressBar } from './ProgressBar';
 import { FileQueue } from './FileQueue';
+import { SharedTextNotes } from './SharedTextNotes';
 
 export function ActiveRoomView({
   roomId,
@@ -21,13 +22,32 @@ export function ActiveRoomView({
   onCancelFile,
   onClearQueue,
   onLeaveRoom,
-  onOpenQR
+  onOpenQR,
+  sharedTexts = [],
+  onSendText,
+  onDeleteText,
+  currentSocketId
 }) {
   const [copiedId, setCopiedId] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [roomTab, setRoomTab] = useState('files'); // 'files' | 'text'
+  const [unreadTextCount, setUnreadTextCount] = useState(0);
+  const lastSeenCountRef = useRef(sharedTexts.length);
   const fileInputRef = useRef(null);
 
   const isConnected = dataChannelStatus === 'open' || connectionStatus === 'CONNECTED';
+
+  useEffect(() => {
+    if (roomTab === 'text') {
+      setUnreadTextCount(0);
+      lastSeenCountRef.current = sharedTexts.length;
+    } else {
+      const diff = sharedTexts.length - lastSeenCountRef.current;
+      if (diff > 0) {
+        setUnreadTextCount(diff);
+      }
+    }
+  }, [sharedTexts.length, roomTab]);
 
   // Generate deterministic security verification hash for this room code
   const generateSecurityCode = (code) => {
@@ -234,139 +254,249 @@ export function ActiveRoomView({
         </div>
       </div>
 
-      {/* Middle Grid: 2 Equal Cards Side-by-Side */}
-      <div className="responsive-grid-2">
-        {/* Left Card: Connection Status / Peer Waiting */}
-        <div style={{
-          backgroundColor: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '16px',
-          padding: '2.5rem 1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          minHeight: '220px'
-        }}>
-          {isConnected ? (
-            <div>
-              <div className="pulse-dot green" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                P2P Mesh Link Active ({openChannelCount} {openChannelCount === 1 ? 'Peer' : 'Peers'})
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                WebRTC DataChannels encrypted & broadcast ready
-              </p>
-            </div>
-          ) : hasPeer ? (
-            <div>
-              <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', marginBottom: '0.4rem' }}>
-                Establishing P2P Link...
-              </h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
-                Peer connected! Exchanging WebRTC encryption keys
-              </p>
-            </div>
-          ) : (
-            <div>
-              <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
-                Waiting for peers to join...
-              </h3>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
-                Share the room ID with someone to start transferring files
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Right Card: Send File / Transfer Area */}
-        <div style={{
-          backgroundColor: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '16px',
-          padding: '1.8rem 1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          minHeight: '220px'
-        }}>
-          <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-              Send File
-            </h3>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-              Max file size: 1 GB
-            </span>
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            multiple
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-          />
-
-          <div style={{
+      {/* Room Tabs: File Transfer vs Shared Text & Questions */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.6rem',
+        backgroundColor: 'var(--bg-card)',
+        padding: '0.4rem',
+        borderRadius: '14px',
+        border: '1px solid var(--border-subtle)'
+      }}>
+        <button
+          type="button"
+          onClick={() => setRoomTab('files')}
+          style={{
+            flex: 1,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1rem 0',
-            textAlign: 'center'
-          }}>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                backgroundColor: 'var(--brand-mint)',
-                color: '#0B0C0E',
-                fontWeight: 700,
-                padding: '0.75rem 1.4rem',
-                borderRadius: '10px',
-                border: 'none',
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <FilePlus size={18} />
-              <span>Select Files</span>
-            </button>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.6rem' }}>
-              {isConnected ? 'Peer connected — ready to transfer' : 'Files will auto-send as soon as peer joins'}
+            gap: '0.55rem',
+            padding: '0.75rem 1rem',
+            borderRadius: '10px',
+            border: 'none',
+            fontSize: '0.92rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            backgroundColor: roomTab === 'files' ? 'var(--brand-mint)' : 'transparent',
+            color: roomTab === 'files' ? '#0B0C0E' : 'var(--text-muted)',
+            transition: 'var(--transition-fast)'
+          }}
+        >
+          <UploadCloud size={17} />
+          <span>File Transfer</span>
+          {queue.length > 0 && (
+            <span style={{
+              fontSize: '0.75rem',
+              padding: '0.15rem 0.45rem',
+              borderRadius: '999px',
+              backgroundColor: roomTab === 'files' ? 'rgba(0,0,0,0.2)' : 'var(--bg-input)',
+              color: roomTab === 'files' ? '#0B0C0E' : 'var(--text-main)'
+            }}>
+              {queue.length}
             </span>
-          </div>
-        </div>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setRoomTab('text');
+            setUnreadTextCount(0);
+            lastSeenCountRef.current = sharedTexts.length;
+          }}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.55rem',
+            padding: '0.75rem 1rem',
+            borderRadius: '10px',
+            border: 'none',
+            fontSize: '0.92rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            backgroundColor: roomTab === 'text' ? 'var(--brand-mint)' : 'transparent',
+            color: roomTab === 'text' ? '#0B0C0E' : 'var(--text-muted)',
+            transition: 'var(--transition-fast)',
+            position: 'relative'
+          }}
+        >
+          <FileText size={17} />
+          <span>Shared Text & Questions</span>
+          {unreadTextCount > 0 ? (
+            <span style={{
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              padding: '0.15rem 0.5rem',
+              borderRadius: '999px',
+              backgroundColor: '#EF4444',
+              color: '#FFFFFF'
+            }}>
+              {unreadTextCount} new
+            </span>
+          ) : sharedTexts.length > 0 ? (
+            <span style={{
+              fontSize: '0.75rem',
+              padding: '0.15rem 0.45rem',
+              borderRadius: '999px',
+              backgroundColor: roomTab === 'text' ? 'rgba(0,0,0,0.2)' : 'var(--bg-input)',
+              color: roomTab === 'text' ? '#0B0C0E' : 'var(--text-dim)'
+            }}>
+              {sharedTexts.length}
+            </span>
+          ) : null}
+        </button>
       </div>
 
-      {/* Active Transfer Progress Bars */}
-      {currentSendingFile && (
-        <ProgressBar
-          fileData={currentSendingFile}
-          isSending={true}
-          onCancel={onCancelFile}
+      {/* Tab Content */}
+      {roomTab === 'files' ? (
+        <>
+          {/* Middle Grid: 2 Equal Cards Side-by-Side */}
+          <div className="responsive-grid-2">
+            {/* Left Card: Connection Status / Peer Waiting */}
+            <div style={{
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '16px',
+              padding: '2.5rem 1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              minHeight: '220px'
+            }}>
+              {isConnected ? (
+                <div>
+                  <div className="pulse-dot green" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                    P2P Mesh Link Active ({openChannelCount} {openChannelCount === 1 ? 'Peer' : 'Peers'})
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                    WebRTC DataChannels encrypted & broadcast ready
+                  </p>
+                </div>
+              ) : hasPeer ? (
+                <div>
+                  <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', marginBottom: '0.4rem' }}>
+                    Establishing P2P Link...
+                  </h3>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                    Peer connected! Exchanging WebRTC encryption keys
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <div className="pulse-dot yellow" style={{ width: '12px', height: '12px', margin: '0 auto 1rem auto' }}></div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+                    Waiting for peers to join...
+                  </h3>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
+                    Share the room ID with someone to start transferring files
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Card: Send File / Transfer Area */}
+            <div style={{
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '16px',
+              padding: '1.8rem 1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '220px'
+            }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                  Send File
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                  Max file size: 1 GB
+                </span>
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                multiple
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem 0',
+                textAlign: 'center'
+              }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    backgroundColor: 'var(--brand-mint)',
+                    color: '#0B0C0E',
+                    fontWeight: 700,
+                    padding: '0.75rem 1.4rem',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <FilePlus size={18} />
+                  <span>Select Files</span>
+                </button>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.6rem' }}>
+                  {isConnected ? 'Peer connected — ready to transfer' : 'Files will auto-send as soon as peer joins'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Transfer Progress Bars */}
+          {currentSendingFile && (
+            <ProgressBar
+              fileData={currentSendingFile}
+              isSending={true}
+              onCancel={onCancelFile}
+            />
+          )}
+
+          {receivingFile && (
+            <ProgressBar
+              fileData={receivingFile}
+              isSending={false}
+            />
+          )}
+
+          {/* Queue & Completed Downloads List */}
+          <FileQueue
+            queue={queue}
+            completedFiles={completedFiles}
+            onCancelFile={onCancelFile}
+            onClearQueue={onClearQueue}
+          />
+        </>
+      ) : (
+        <SharedTextNotes
+          sharedTexts={sharedTexts}
+          onSendText={onSendText}
+          onDeleteText={onDeleteText}
+          currentSocketId={currentSocketId}
+          isConnected={isConnected}
         />
       )}
-
-      {receivingFile && (
-        <ProgressBar
-          fileData={receivingFile}
-          isSending={false}
-        />
-      )}
-
-      {/* Queue & Completed Downloads List */}
-      <FileQueue
-        queue={queue}
-        completedFiles={completedFiles}
-        onCancelFile={onCancelFile}
-        onClearQueue={onClearQueue}
-      />
 
       {/* Bottom Full-Width Action: Leave Room */}
       <button

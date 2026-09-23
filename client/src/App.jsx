@@ -36,7 +36,10 @@ export default function App() {
     completedFiles,
     addFilesToQueue,
     cancelFile,
-    clearQueue
+    clearQueue,
+    sharedTexts,
+    sendTextMessage,
+    deleteTextMessage
   } = useWebRTC({
     socket,
     roomId,
@@ -117,6 +120,10 @@ export default function App() {
               onClearQueue={clearQueue}
               onLeaveRoom={leaveRoom}
               onOpenQR={() => setShowQR(true)}
+              sharedTexts={sharedTexts}
+              onSendText={sendTextMessage}
+              onDeleteText={deleteTextMessage}
+              currentSocketId={peerId || socket?.id}
             />
           )}
         </main>
