@@ -39,7 +39,7 @@ export function QRCodeModal({ roomId, onClose }) {
         className="glass-card"
         style={{
           width: '100%',
-          maxWidth: '420px',
+          maxWidth: '580px',
           padding: '2.2rem 2rem',
           borderRadius: '20px',
           display: 'flex',
